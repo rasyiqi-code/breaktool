@@ -1,103 +1,234 @@
-import Image from "next/image";
 
-export default function Home() {
+import { ToolCard } from "@/components/tools/tool-card"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TrendingUp, Clock, Star, Search, BarChart3 } from "lucide-react"
+import { OptimizedQueriesService } from "@/lib/services/optimized-queries.service"
+import Link from "next/link"
+
+// Helper function to ensure data is serializable
+function ensureSerializable(data: unknown): unknown {
+  try {
+    return JSON.parse(JSON.stringify(data))
+  } catch (error) {
+    console.error('Data serialization error:', error)
+    // Return safe fallback
+    if (Array.isArray(data)) return []
+    if (typeof data === 'object') return {}
+    return data
+  }
+}
+
+// No mock data - we'll use pure Supabase data
+
+export default async function Home() {
+  // Fetch data from Supabase
+  let trendingTools: unknown[] = []
+  let recentTools: unknown[] = []
+  let featuredTools: unknown[] = []
+  let stats = {
+    totalTools: 0,
+    totalReviews: 0,
+    verifiedTesters: 0,
+    totalUsers: 0
+  }
+
+  try {
+    const [trending, recent, featured, platformStats] = await Promise.all([
+      OptimizedQueriesService.getTrendingToolsOptimized(6),
+      OptimizedQueriesService.getToolsOptimized({ limit: 6, sortBy: 'createdAt', sortOrder: 'desc' }),
+      OptimizedQueriesService.getFeaturedToolsOptimized(6),
+      OptimizedQueriesService.getPlatformStatsOptimized()
+    ])
+
+    // Ensure data is properly serialized
+    trendingTools = ensureSerializable(trending) as unknown[]
+    recentTools = ensureSerializable(recent.tools) as unknown[]
+    featuredTools = ensureSerializable(featured) as unknown[]
+    stats = ensureSerializable(platformStats) as typeof stats
+  } catch (error) {
+    console.error('Error fetching data:', error)
+    // Empty arrays if database not ready
+    trendingTools = []
+    recentTools = []
+    featuredTools = []
+    stats = {
+      totalTools: 0,
+      totalReviews: 0,
+      verifiedTesters: 0,
+      totalUsers: 0
+    }
+  }
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-background">
+      
+      {/* Hero Section */}
+      <div className="border-b">
+        <div className="container py-16 lg:py-20">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-4xl lg:text-5xl font-bold tracking-tight mb-6">
+              Discover. Test. Decide.
+              <br />
+              <span className="text-muted-foreground">The most trusted SaaS review platform.</span>
+            </h1>
+            <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+              Get reviews from <strong className="text-foreground">verified experts</strong> and <strong className="text-foreground">professional testers</strong> 
+              who have actually used these tools in real scenarios. Stop guessing, start deciding.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button size="lg" className="w-full sm:w-auto">
+                Browse Tools
+              </Button>
+              <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                Become a Verified Tester
+              </Button>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+
+      {/* Main Content */}
+      <div className="container py-12">
+        {/* Trust Indicators */}
+        <div className="grid grid-cols-3 md:grid-cols-3 gap-4 md:gap-8 mb-12">
+          <div className="text-center">
+            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-2 md:mb-3">
+              {stats.totalTools > 0 ? `${stats.totalTools}+` : '0'}
+            </div>
+            <div className="text-xs sm:text-sm md:text-base font-medium text-muted-foreground">SaaS Tools Reviewed</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-2 md:mb-3">
+              {stats.verifiedTesters > 0 ? `${stats.verifiedTesters}+` : '0'}
+            </div>
+            <div className="text-xs sm:text-sm md:text-base font-medium text-muted-foreground">Verified Expert Testers</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-2 md:mb-3">
+              {stats.totalReviews > 0 ? `${stats.totalReviews}+` : '0'}
+            </div>
+            <div className="text-xs sm:text-sm md:text-base font-medium text-muted-foreground">Trusted Reviews</div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-4 md:gap-6 mb-12">
+          <Link href="/tools" className="group">
+            <div className="p-4 md:p-6 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2 md:mb-3">
+                <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors w-fit">
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                </div>
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold">Advanced Search</h3>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Find tools with advanced filtering, autocomplete, and smart recommendations
+              </p>
+            </div>
+          </Link>
+          
+          <Link href="/compare" className="group">
+            <div className="p-4 md:p-6 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2 md:mb-3">
+                <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors w-fit">
+                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                </div>
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold">Compare Tools</h3>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Side-by-side comparison of features, ratings, and verdicts
+              </p>
+            </div>
+          </Link>
+        </div>
+
+
+
+        {/* Tools Tabs */}
+        <Tabs defaultValue="trending" className="w-full">
+          <div className="flex justify-center mb-8">
+            <TabsList className="grid w-full sm:w-auto grid-cols-3">
+              <TabsTrigger value="trending" className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                <span className="hidden sm:inline">Trending</span>
+                <span className="sm:hidden">Trend</span>
+              </TabsTrigger>
+              <TabsTrigger value="recent" className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Recent
+              </TabsTrigger>
+              <TabsTrigger value="featured" className="flex items-center gap-2">
+                <Star className="w-4 h-4" />
+                <span className="hidden sm:inline">Featured</span>
+                <span className="sm:hidden">Top</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="trending" className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+            {trendingTools.length > 0 ? (
+              trendingTools.map((tool) => (
+                <ToolCard
+                  key={(tool as { id: string }).id}
+                  tool={tool as import('@/types/database').Tool}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-muted-foreground">No tools available. Please setup the database first.</p>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="recent" className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+            {recentTools.length > 0 ? (
+              recentTools.map((tool) => (
+                <ToolCard
+                  key={(tool as { id: string }).id}
+                  tool={tool as import('@/types/database').Tool}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-muted-foreground">No recent tools available.</p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="featured" className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+            {featuredTools.length > 0 ? (
+              featuredTools.map((tool) => (
+                <ToolCard
+                  key={(tool as { id: string }).id}
+                  tool={tool as import('@/types/database').Tool}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-muted-foreground">No featured tools available.</p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        {/* Call to Action */}
+        <div className="mt-20 text-center">
+          <div className="max-w-3xl mx-auto bg-muted/30 rounded-2xl p-8 lg:p-12">
+            <h2 className="text-2xl lg:text-3xl font-bold mb-4">Can&apos;t find what you&apos;re looking for?</h2>
+            <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+              Submit a SaaS tool for our expert review team to evaluate, or join our verified tester network.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button size="lg" className="w-full sm:w-auto">
+                Submit a Tool
+              </Button>
+              <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                Join as Tester
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
