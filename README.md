@@ -4,12 +4,14 @@
 
 ## Features
 
-- **Multi-role System** - Admin, Tester, Vendor, User roles with granular permissions
-- **Structured Reviews** - Value, Usage, Integration scoring system
-- **Verified Testing** - Professional testing framework
-- **Community Features** - Discussions, bookmarks, trust scores
-- **Performance Optimized** - 9.76 kB homepage, 320 kB shared JS
-- **SEO Ready** - Dynamic metadata, structured data, sitemaps
+- **Multi-role System** - Super Admin, Admin, Verified Tester, Vendor, User roles with granular permissions
+- **Structured Reviews** - Value, Usage, Integration scoring system with detailed analysis
+- **Professional Testing Framework** - Verified tester network with comprehensive testing reports
+- **Community Features** - Discussions, threaded replies, voting system, trust scores
+- **Tool Management** - Advanced search, filtering, comparison, and categorization
+- **Analytics & Insights** - Platform analytics, user engagement metrics, review analytics
+- **Performance Optimized** - Bundle analysis, API caching, database indexing
+- **SEO Ready** - Dynamic metadata, structured data, XML sitemaps, Open Graph support
 
 ## Tech Stack
 
@@ -55,29 +57,96 @@ src/
 ## Scripts
 
 ```bash
-bun run dev          # Development server
-bun run build        # Production build
+bun run dev          # Development server with Turbopack
+bun run build        # Production build with Prisma generation
+bun run build:analyze # Build with bundle analysis
+bun run start        # Start production server
 bun run lint         # ESLint
 bun run type-check   # TypeScript check
 bun run db:generate  # Generate Prisma client
 bun run db:push      # Push schema changes
+bun run db:migrate   # Run database migrations
+bun run db:studio    # Open Prisma Studio
 bun run analyze      # Bundle analysis
 ```
 
 ## Role System
 
-- **Super Admin** - Full system control
-- **Admin** - Content moderation, user verification
-- **Verified Tester** - Professional testing, detailed reports
-- **Vendor** - Tool management, analytics
-- **User** - Reviews, discussions, tool discovery
+- **Super Admin** - Full system control, user management, analytics
+- **Admin** - Content moderation, user verification, vendor approval, tool management
+- **Verified Tester** - Professional testing, detailed reports, testing task management
+- **Vendor** - Tool management, analytics, subscription features
+- **User** - Reviews, discussions, tool discovery, community participation
+
+### Multi-Role Support
+Users can have multiple roles with role switching capabilities. The system supports:
+- Primary role assignment
+- Active role switching
+- Role-based permissions and access control
+- User role management through admin interface
 
 ## Performance
 
-- **Bundle Size** - 9.76 kB homepage, 320 kB shared JS
-- **Optimizations** - Dynamic imports, code splitting, API caching
-- **SEO** - Dynamic metadata, structured data, sitemaps
-- **Monitoring** - Core Web Vitals tracking
+- **Bundle Analysis** - Built-in bundle analysis with optimization recommendations
+- **API Caching** - In-memory caching system with configurable TTL
+- **Database Optimization** - Indexed queries, connection pooling, optimized schema
+- **Image Optimization** - Next.js Image component with WebP/AVIF support
+- **SEO** - Dynamic metadata, structured data, XML sitemaps, Open Graph
+- **Monitoring** - Core Web Vitals tracking, performance monitoring
+
+## API Documentation
+
+### Core API Endpoints (100+ endpoints)
+
+#### Tools & Categories
+- `GET /api/tools` - List tools with filtering and pagination
+- `GET /api/tools/[slug]` - Get tool details
+- `GET /api/tools/search` - Search tools
+- `GET /api/tools/compare` - Compare multiple tools
+- `GET /api/categories` - List categories
+
+#### Reviews & Community
+- `GET /api/community/reviews` - Get tool reviews
+- `POST /api/community/reviews/create` - Create new review
+- `GET /api/community/discussions` - Get discussions
+- `POST /api/community/discussions` - Create discussion
+- `GET /api/community/notifications` - User notifications
+
+#### Testing Framework
+- `GET /api/testing/reports` - Get testing reports
+- `GET /api/testing/tester-stats/stats/*` - Tester statistics
+- `GET /api/testing/reports-management` - Manage testing reports
+
+#### Admin & Management
+- `GET /api/admin/stats` - Platform statistics
+- `GET /api/admin/users` - User management
+- `PATCH /api/admin/users/[id]/verification` - User verification
+- `PATCH /api/admin/users/[id]/vendor-approval` - Vendor approval
+
+#### Analytics
+- `GET /api/analytics/platform` - Platform analytics
+- `GET /api/analytics/tool/[id]` - Tool-specific analytics
+- `GET /api/analytics/comparison` - Comparison analytics
+
+## Database Schema
+
+### Core Models (15+ models)
+- **User** - User profiles, roles, verification status
+- **Tool** - SaaS tools with metadata and scoring
+- **Review** - User reviews with structured scoring
+- **TestingReport** - Professional testing reports
+- **Discussion** - Community discussions with threading
+- **Category** - Tool categorization
+- **UserRole** - Multi-role system support
+- **VendorApplication** - Vendor application management
+- **VerificationRequest** - Tester verification requests
+
+### Key Features
+- **Multi-role System** - Users can have multiple roles
+- **Structured Scoring** - Value, Usage, Integration scores
+- **Community Features** - Discussions, voting, trust scores
+- **Professional Testing** - Comprehensive testing framework
+- **Analytics** - User engagement and platform metrics
 
 ## Documentation
 
@@ -121,13 +190,31 @@ Ready for **Vercel**, **Netlify**, **Railway**, or **DigitalOcean**.
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
+## Security Features
+
+- **Rate Limiting** - API protection against abuse
+- **Security Headers** - Comprehensive security configuration
+- **Input Validation** - Comprehensive sanitization and validation
+- **Error Handling** - React Error Boundaries for graceful error handling
+- **Authentication** - Stack Auth integration with JWT tokens
+- **Authorization** - Role-based access control
+
+## Development Features
+
+- **TypeScript 100%** - Full type safety across the codebase
+- **Bundle Analysis** - Performance monitoring and optimization
+- **Database Scripts** - Migration and seeding utilities
+- **Sample Data** - Development data generation scripts
+- **Error Boundaries** - Graceful error handling
+- **Performance Monitoring** - Core Web Vitals tracking
+
 ## Roadmap
 
-- [ ] Trust Score System
-- [ ] Real-time Features (WebSocket)
-- [ ] AI-powered Search
-- [ ] Advanced Analytics
-- [ ] Mobile App (React Native)
+- [ ] Trust Score System - User reputation calculation
+- [ ] Real-time Features (WebSocket) - Live updates and notifications
+- [ ] AI-powered Search - Intelligent tool recommendations
+- [ ] Advanced Analytics - Business intelligence tools
+- [ ] Mobile App (React Native) - Native mobile application
 
 ---
 
