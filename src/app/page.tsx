@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TrendingUp, Clock, Star, Search, BarChart3 } from "lucide-react"
 import { OptimizedQueriesService } from "@/lib/services/optimized-queries.service"
+import { Footer } from "@/components/layout/footer"
 import Link from "next/link"
 
 // Helper function to ensure data is serializable
@@ -219,16 +220,23 @@ export default async function Home() {
               Submit a SaaS tool for our expert review team to evaluate, or join our verified tester network.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="w-full sm:w-auto">
-                Submit a Tool
-              </Button>
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                Join as Tester
-              </Button>
+              <Link href="/tools/submit">
+                <Button size="lg" className="w-full sm:w-auto">
+                  Submit a Tool
+                </Button>
+              </Link>
+              <Link href="/apply-verification">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                  Join as Tester
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   )
 }

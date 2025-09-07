@@ -7,7 +7,7 @@ import { SearchInput } from "@/components/search-input"
 import { MainNav } from "./navigation/main-nav"
 import { UserDropdownMenu } from "@/components/ui/user-dropdown-menu"
 import { MobileNav } from "./navigation/mobile-nav"
-import { Menu, X } from "lucide-react"
+import { Menu, X, Github } from "lucide-react"
 
 interface HeaderProps {
   userRole: string
@@ -53,6 +53,17 @@ export function Header({ userRole, isClient, user }: HeaderProps) {
 
           {/* Right side */}
           <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
+            {/* GitHub Link */}
+            <Link 
+              href="https://github.com/rasyiqi-code/breaktool" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Github className="h-4 w-4" />
+              <span className="text-sm hidden lg:inline">GitHub</span>
+            </Link>
+
             {/* Mobile Search Button */}
             <MobileNav />
 
@@ -90,6 +101,18 @@ export function Header({ userRole, isClient, user }: HeaderProps) {
         <div className="lg:hidden border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container">
             <MainNav userRole={userRole} />
+            {/* Mobile GitHub Link */}
+            <div className="py-3 border-t">
+              <Link 
+                href="https://github.com/rasyiqi-code/breaktool" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors px-4 py-2"
+              >
+                <Github className="h-4 w-4" />
+                <span className="text-sm">View on GitHub</span>
+              </Link>
+            </div>
           </div>
         </div>
       )}
