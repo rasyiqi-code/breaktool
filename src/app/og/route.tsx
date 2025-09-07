@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
               Breaktool
             </div>
             {logo && (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={logo}
                 alt="Tool Logo"

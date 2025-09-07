@@ -2,12 +2,6 @@
 
 import { useEffect } from 'react'
 
-interface PerformanceMetrics {
-  loadTime: number
-  renderTime: number
-  memoryUsage?: number
-}
-
 interface PerformanceMemory {
   usedJSHeapSize: number
   totalJSHeapSize: number
