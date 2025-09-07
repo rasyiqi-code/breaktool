@@ -279,10 +279,11 @@ export default function SubmitPage() {
                       <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span className="text-foreground">Access analytics dashboard</span>
                     </div>
-                    <div className="flex items-start gap-2">
+                    {/* TODO: Featured placement feature - not implemented yet */}
+                    {/* <div className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span className="text-foreground">Featured placement options</span>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </CardContent>

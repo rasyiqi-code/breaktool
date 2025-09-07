@@ -36,17 +36,18 @@ export interface Category {
   updated_at: string
 }
 
-export interface FeaturedPlacement {
-  id: string
-  tool_id: string
-  vendor_email: string
-  position: string
-  start_date: string
-  end_date: string
-  status: 'active' | 'inactive' | 'pending'
-  created_at: string
-  updated_at: string
-}
+// TODO: Featured placement feature - not implemented yet
+// export interface FeaturedPlacement {
+//   id: string
+//   tool_id: string
+//   vendor_email: string
+//   position: string
+//   start_date: string
+//   end_date: string
+//   status: 'active' | 'inactive' | 'pending'
+//   created_at: string
+//   updated_at: string
+// }
 
 export interface ToolWithCategory extends Tool {
   category: Category

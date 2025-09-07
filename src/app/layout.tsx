@@ -45,18 +45,21 @@ export const metadata: Metadata = {
     description: 'Discover, test, and decide on SaaS tools with reviews from verified experts and professionals. The most trusted SaaS review platform.',
     images: [
       {
-        url: '/og-default.png',
+        url: '/og',
         width: 1200,
         height: 630,
         alt: 'Breaktool - SaaS Review Platform',
+        type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
+    site: '@breaktool',
+    creator: '@breaktool',
     title: 'Breaktool - Trusted SaaS Reviews by Verified Experts',
     description: 'Discover, test, and decide on SaaS tools with reviews from verified experts and professionals.',
-    images: ['/og-default.png'],
+    images: ['/og'],
   },
   other: {
     'msapplication-config': 'none',

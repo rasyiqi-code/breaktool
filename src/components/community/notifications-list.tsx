@@ -134,7 +134,7 @@ export function NotificationsList({
       'tool_approved': Star,
       'tester_approved': Award,
       'subscription_expiring': Clock,
-      'featured_placement_approved': Star,
+      // 'featured_placement_approved': Star, // TODO: Featured placement feature - not implemented yet
       'affiliate_commission': DollarSign,
       'lead_generated': DollarSign
     };
@@ -151,7 +151,7 @@ export function NotificationsList({
       'tool_approved': 'green',
       'tester_approved': 'purple',
       'subscription_expiring': 'orange',
-      'featured_placement_approved': 'green',
+      // 'featured_placement_approved': 'green', // TODO: Featured placement feature - not implemented yet
       'affiliate_commission': 'green',
       'lead_generated': 'green'
     };
