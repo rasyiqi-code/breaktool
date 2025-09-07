@@ -5,13 +5,13 @@
   "private": true,
   "author": "Breaktool Team",
   "license": "MIT",
-  "homepage": "https://github.com/your-username/breaktool#readme",
+  "homepage": "https://github.com/rasyiqi-code/breaktool#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-username/breaktool.git"
+    "url": "git+https://github.com/rasyiqi-code/breaktool.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/breaktool/issues"
+    "url": "https://github.com/rasyiqi-code/breaktool/issues"
   },
   "keywords": [
     "saas",
