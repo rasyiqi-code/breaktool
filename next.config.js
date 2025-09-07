@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ['@prisma/client'],
   images: {
     remotePatterns: [
       {
@@ -46,7 +47,6 @@ const nextConfig = {
       }
     ],
   },
-  serverExternalPackages: ['@prisma/client'],
 }
 
 module.exports = nextConfig

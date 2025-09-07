@@ -1,7 +1,11 @@
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
 
+// Edge runtime is required for OG image generation
+// This will show a warning about static generation being disabled, which is expected
 export const runtime = 'edge'
+export const dynamic = 'force-dynamic'
+export const revalidate = false
 
 export async function GET(request: NextRequest) {
   try {
@@ -47,15 +51,15 @@ export async function GET(request: NextRequest) {
               Breaktool
             </div>
             {logo && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={logo}
-                alt="Tool Logo"
+              <div
                 style={{
                   width: '60px',
                   height: '60px',
                   borderRadius: '12px',
-                  objectFit: 'cover',
+                  backgroundImage: `url(${logo})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
                 }}
               />
             )}

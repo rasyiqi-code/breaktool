@@ -9,6 +9,7 @@ import { PerformanceMonitor } from "@/components/performance/performance-monitor
 import { ErrorBoundary } from "@/components/error/error-boundary";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://breaktool.com'),
   title: "Breaktool - Trusted SaaS Reviews by Verified Experts",
   description: "Discover, test, and decide on SaaS tools with reviews from verified experts and professionals. The most trusted SaaS review platform.",
   keywords: [

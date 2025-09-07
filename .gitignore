@@ -245,3 +245,6 @@ bun.lockb
 
 # Local development
 .env*.local
+
+# Development scripts (not needed in production)
+scripts/
