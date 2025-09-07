@@ -2,7 +2,7 @@
 import { ToolCard } from "@/components/tools/tool-card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { TrendingUp, Clock, Star, Search, BarChart3 } from "lucide-react"
+import { TrendingUp, Clock, Star, Search, BarChart3, Wrench, Users, MessageSquare } from "lucide-react"
 import { OptimizedQueriesService } from "@/lib/services/optimized-queries.service"
 import { Footer } from "@/components/layout/footer"
 import Link from "next/link"
@@ -93,18 +93,33 @@ export default async function Home() {
         {/* Trust Indicators */}
         <div className="grid grid-cols-3 md:grid-cols-3 gap-4 md:gap-8 mb-12">
           <div className="text-center">
+            <div className="flex justify-center mb-2">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Wrench className="w-5 h-5 text-primary" />
+              </div>
+            </div>
             <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-2 md:mb-3">
               {stats.totalTools > 0 ? `${stats.totalTools}+` : '0'}
             </div>
             <div className="text-xs sm:text-sm md:text-base font-medium text-muted-foreground">SaaS Tools Reviewed</div>
           </div>
           <div className="text-center">
+            <div className="flex justify-center mb-2">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
+            </div>
             <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-2 md:mb-3">
               {stats.verifiedTesters > 0 ? `${stats.verifiedTesters}+` : '0'}
             </div>
             <div className="text-xs sm:text-sm md:text-base font-medium text-muted-foreground">Verified Expert Testers</div>
           </div>
           <div className="text-center">
+            <div className="flex justify-center mb-2">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <MessageSquare className="w-5 h-5 text-primary" />
+              </div>
+            </div>
             <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-2 md:mb-3">
               {stats.totalReviews > 0 ? `${stats.totalReviews}+` : '0'}
             </div>
