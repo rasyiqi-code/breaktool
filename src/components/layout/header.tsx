@@ -29,26 +29,26 @@ export function Header({ userRole, isClient, user }: HeaderProps) {
   return (
     <>
       {/* Main Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-[0_1px_0_0_rgba(255,255,255,0.1)]">
+      <header className="sticky top-0 z-50 w-full border-b border-white bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-[0_1px_0_0_rgba(255,255,255,0.1)]">
         <div className="container flex h-12 items-center justify-between gap-4">
           {/* Logo */}
           <div className="flex items-center gap-2 lg:gap-8 min-w-0 flex-1">
             <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-white text-black font-bold text-sm border border-gray-200">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-black font-bold text-lg border border-gray-200">
                 B
               </div>
-              <span className="text-lg font-bold hidden sm:inline">Breaktool</span>
+              <span className="text-xl font-bold hidden sm:inline">BREAKTOOL</span>
             </Link>
 
-            {/* Desktop Navigation Links */}
-            <div className="hidden lg:block flex-1 min-w-0 lg:flex-none">
-              <MainNav userRole={userRole} />
+            {/* Search Bar */}
+            <div className="flex-1 max-w-md mx-3 lg:mx-6 hidden lg:block">
+              <SearchInput />
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="flex-1 max-w-md mx-3 lg:mx-6 hidden lg:block">
-            <SearchInput />
+          {/* Desktop Navigation Links */}
+          <div className="hidden lg:block flex-1 min-w-0 lg:flex-none">
+            <MainNav userRole={userRole} />
           </div>
 
           {/* Right side */}
@@ -98,7 +98,7 @@ export function Header({ userRole, isClient, user }: HeaderProps) {
 
       {/* Mobile Navigation Bar */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-[0_1px_0_0_rgba(255,255,255,0.1)]">
+        <div className="lg:hidden border-b border-white bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-[0_1px_0_0_rgba(255,255,255,0.1)]">
           <div className="container">
             <MainNav userRole={userRole} />
             {/* Mobile GitHub Link */}
