@@ -43,6 +43,7 @@ interface ComparisonTool extends Tool {
   features?: string;
   pros?: string;
   cons?: string;
+  logoUrl?: string; // Support both snake_case and camelCase
 }
 
 export function ToolComparison({ maxTools = 4 }: ToolComparisonProps) {
@@ -383,8 +384,8 @@ export function ToolComparison({ maxTools = 4 }: ToolComparisonProps) {
                     >
                       <div className="flex items-center gap-3 flex-1">
                         <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-                          {tool.logo_url ? (
-                            <Image src={tool.logo_url} alt={tool.name} width={24} height={24} className="w-6 h-6 rounded" />
+                          {(tool.logo_url || tool.logoUrl) ? (
+                            <Image src={(tool.logo_url || tool.logoUrl)!} alt={tool.name} width={24} height={24} className="w-6 h-6 rounded" />
                           ) : (
                             <span className="text-xs font-bold">{tool.name.charAt(0)}</span>
                           )}

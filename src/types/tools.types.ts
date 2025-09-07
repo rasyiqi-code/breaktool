@@ -7,6 +7,7 @@ export interface Tool {
   description: string
   url: string
   logo_url?: string
+  logoUrl?: string // Support both snake_case and camelCase
   category_id: string
   pricing_model: string
   features: string[]

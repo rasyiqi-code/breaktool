@@ -553,10 +553,10 @@ export default function ToolDetailPage() {
               <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
                 {/* Logo - responsive sizing */}
                 <div className="flex items-center gap-3 sm:gap-4">
-                  {tool.logo_url ? (
+                  {(tool.logo_url || tool.logoUrl) ? (
                     <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-xl overflow-hidden bg-muted shrink-0">
                       <Image
-                        src={tool.logo_url as string}
+                        src={(tool.logo_url || tool.logoUrl) as string}
                         alt={`${tool.name} logo`}
                         fill
                         className="object-cover"

@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 import { 
   CheckCircle, 
   XCircle, 
@@ -27,6 +28,7 @@ interface ToolSubmission {
   submitted_at: string;
   status: 'pending' | 'approved' | 'rejected';
   review_notes?: string;
+  isFromMainTable?: boolean; // Flag to identify if tool is from main Tool table
 }
 
 interface ToolCardProps {
@@ -96,9 +98,20 @@ export function ToolCard({
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <FileText className="w-4 h-4 text-white" />
-              </div>
+              {(tool as { logo_url?: string }).logo_url ? (
+                <div className="w-8 h-8 rounded-lg overflow-hidden bg-muted">
+                  <Image
+                    src={(tool as { logo_url?: string }).logo_url || ''}
+                    alt={`${tool.name} logo`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-white" />
+                </div>
+              )}
               <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                 {tool.name}
               </CardTitle>
@@ -203,7 +216,7 @@ export function ToolCard({
           )}
         </div>
 
-        {/* Status Change Buttons for Pending Tools */}
+        {/* Status Change Buttons */}
         {tool.status === 'pending' && (
           <div className="flex gap-2 pt-3 border-t border-gray-100">
             <Button 
@@ -222,6 +235,21 @@ export function ToolCard({
             >
               <XCircle className="w-4 h-4 mr-1" />
               Reject
+            </Button>
+          </div>
+        )}
+
+        {/* Remove Button for Approved Tools from Main Table */}
+        {tool.status === 'approved' && tool.isFromMainTable && (
+          <div className="flex gap-2 pt-3 border-t border-gray-100">
+            <Button 
+              size="sm" 
+              variant="destructive" 
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white border-0 shadow-sm hover:shadow-md transition-all duration-200"
+              onClick={() => onStatusChange(tool.id, 'rejected')}
+            >
+              <XCircle className="w-4 h-4 mr-1" />
+              Remove from Tools
             </Button>
           </div>
         )}

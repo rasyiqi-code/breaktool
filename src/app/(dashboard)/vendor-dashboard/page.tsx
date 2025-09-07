@@ -75,8 +75,26 @@ export default function VendorDashboardPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">View My Tools</CardTitle>
+              <CardTitle className="text-sm font-medium">Claim Tool Ownership</CardTitle>
               <Building className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground dark:text-gray-400 mb-3">
+                Claim ownership of existing tools
+              </p>
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/vendor-dashboard/claim-ownership">
+                  <Building className="h-4 w-4 mr-2" />
+                  Claim Ownership
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">View My Tools</CardTitle>
+              <ExternalLink className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <p className="text-xs text-muted-foreground dark:text-gray-400 mb-3">

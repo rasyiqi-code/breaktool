@@ -58,10 +58,10 @@ export function ToolCard({
         <CardHeader className="pb-2 px-3 sm:px-4 pt-4">
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-3">
-              {tool.logo_url ? (
+              {(tool.logo_url || (tool as { logoUrl?: string }).logoUrl) ? (
                 <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-muted">
                   <Image
-                    src={tool.logo_url}
+                    src={tool.logo_url || (tool as { logoUrl?: string }).logoUrl || ''}
                     alt={`${tool.name} logo`}
                     fill
                     className="object-cover"

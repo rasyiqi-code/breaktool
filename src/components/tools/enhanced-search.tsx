@@ -227,8 +227,8 @@ export function EnhancedSearch({ onSearch, onClear, initialFilters }: EnhancedSe
                         className="w-full px-4 py-2 text-left hover:bg-muted flex items-center gap-3"
                       >
                         <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-                          {tool.logo_url ? (
-                            <Image src={tool.logo_url} alt={tool.name} width={24} height={24} className="w-6 h-6 rounded" />
+                          {(tool.logo_url || (tool as { logoUrl?: string }).logoUrl) ? (
+                            <Image src={tool.logo_url || (tool as { logoUrl?: string }).logoUrl || ''} alt={tool.name} width={24} height={24} className="w-6 h-6 rounded" />
                           ) : (
                             <span className="text-xs font-bold">{tool.name.charAt(0)}</span>
                           )}

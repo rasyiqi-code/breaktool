@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user exists
+    // Check if user exists and get their role
     const user = await prisma.user.findUnique({
       where: { id: submitted_by }
     });
@@ -38,35 +38,68 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create tool submission
-    const toolSubmission = await prisma.toolSubmission.create({
-      data: {
-        name,
-        website,
-        description: description || null,
-        categoryId: category_id || null,
-        logoUrl: logo_url || null,
-        submittedBy: submitted_by,
-        submitterRelationship: submitter_relationship || null,
-        additionalInfo: additional_info || null,
-        status
-      },
-      include: {
-        category: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true
+    // Check if user is admin (auto-approve for admins)
+    const isAdmin = user.role === 'admin' || user.activeRole === 'admin' || user.primaryRole === 'admin';
+    
+    if (isAdmin) {
+      // For admins, create tool directly in the main Tool table
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      
+      const tool = await prisma.tool.create({
+        data: {
+          name,
+          slug,
+          description: description || null,
+          website,
+          logoUrl: logo_url || null,
+          categoryId: category_id || null,
+          submittedBy: submitted_by,
+          status: 'active', // Auto-approve for admins
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        include: {
+          category: true
+        }
+      });
+
+      return NextResponse.json({
+        message: 'Tool created successfully (admin auto-approved)',
+        tool: tool,
+        isAdmin: true
+      });
+    } else {
+      // For regular users, create tool submission
+      const toolSubmission = await prisma.toolSubmission.create({
+        data: {
+          name,
+          website,
+          description: description || null,
+          categoryId: category_id || null,
+          logoUrl: logo_url || null,
+          submittedBy: submitted_by,
+          submitterRelationship: submitter_relationship || null,
+          additionalInfo: additional_info || null,
+          status
+        },
+        include: {
+          category: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
           }
         }
-      }
-    });
+      });
 
-    return NextResponse.json({
-      message: 'Tool submission created successfully',
-      submission: toolSubmission
-    });
+      return NextResponse.json({
+        message: 'Tool submission created successfully',
+        submission: toolSubmission,
+        isAdmin: false
+      });
+    }
 
   } catch (error) {
     console.error('Error creating tool submission:', error);

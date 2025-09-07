@@ -59,6 +59,8 @@ model Tool {
   testingTasks     TestingTask[]
   toolUpvotes      ToolUpvote[]
   category         Category?       @relation(fields: [categoryId], references: [id])
+  submitter        User?           @relation("ToolSubmitter", fields: [submittedBy], references: [id])
+  ownershipClaims  ToolOwnershipClaim[]
 
   @@index([status, featured])
   @@index([categoryId])
@@ -111,6 +113,9 @@ model User {
   testingTasks         TestingTask[]
   toolSubmissions      ToolSubmission[]
   toolUpvotes          ToolUpvote[]
+  submittedTools       Tool[]              @relation("ToolSubmitter")
+  ownershipClaims      ToolOwnershipClaim[]
+  reviewedClaims       ToolOwnershipClaim[] @relation("OwnershipClaimReviewer")
   verificationRequests VerificationRequest[]
   vendorApplications   VendorApplication[]
   userRoles            UserRole[]
@@ -150,6 +155,7 @@ model Review {
   usageDuration        String?      @map("usage_duration")
   helpfulVotes         Int          @default(0) @map("helpful_votes")
   totalVotes           Int          @default(0) @map("total_votes")
+  bookmarkedBy         String[]     @default([]) @map("bookmarked_by")
   status               String       @default("active") @db.VarChar(50)
   featured             Boolean      @default(false)
   createdAt            DateTime     @default(now()) @map("created_at")
@@ -222,6 +228,37 @@ model ToolSubmission {
   user                  User?     @relation(fields: [submittedBy], references: [id])
 
   @@map("tool_submissions")
+}
+
+model ToolOwnershipClaim {
+  id                    String    @id @default(cuid())
+  toolId                String    @map("tool_id")
+  vendorId              String    @map("vendor_id")
+  claimType             String    @map("claim_type") @db.VarChar(50) // "owner", "representative", "affiliate"
+  companyName           String?   @map("company_name")
+  contactEmail          String    @map("contact_email")
+  contactPhone          String?   @map("contact_phone")
+  website               String?
+  businessRegistration  String?   @map("business_registration")
+  proofOfOwnership      String?   @map("proof_of_ownership") // URL to proof document
+  additionalInfo        String?   @map("additional_info")
+  status                String    @default("pending") @db.VarChar(50) // "pending", "approved", "rejected"
+  reviewedBy            String?   @map("reviewed_by")
+  reviewedAt            DateTime? @map("reviewed_at")
+  reviewNotes           String?   @map("review_notes")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  tool                  Tool      @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  vendor                User      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  reviewer              User?     @relation("OwnershipClaimReviewer", fields: [reviewedBy], references: [id])
+
+  @@unique([toolId, vendorId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([vendorId])
+  @@map("tool_ownership_claims")
 }
 
 model VerificationRequest {

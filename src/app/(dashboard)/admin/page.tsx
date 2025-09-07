@@ -644,6 +644,14 @@ export default function AdminDashboard() {
                     <Button 
                       variant="outline" 
                       className="w-full justify-start"
+                      onClick={() => router.push('/admin/ownership-claims')}
+                    >
+                      <Building2 className="w-4 h-4 mr-2" />
+                      Review Ownership Claims
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
                       onClick={() => router.push('/admin/users')}
                     >
                       <Users className="w-4 h-4 mr-2" />

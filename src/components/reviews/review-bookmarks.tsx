@@ -47,7 +47,7 @@ export function ReviewBookmarks({ showFilters = true }: ReviewBookmarksProps) {
     try {
       setLoading(true);
       // Fetch bookmarked reviews from API
-      const response = await fetch(`/api/reviews/bookmarks?userId=${user.id}`);
+      const response = await fetch(`/api/community/reviews/bookmarks?userId=${user.id}`);
       if (response.ok) {
         const data = await response.json();
         setBookmarkedReviews(data.bookmarks || []);
