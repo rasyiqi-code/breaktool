@@ -150,7 +150,13 @@ Users can have multiple roles with role switching capabilities. The system suppo
 
 ## Documentation
 
-See [docs/DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) for detailed developer documentation.
+### 📚 Comprehensive Documentation
+- **[Concepts & Features](./docs/CONCEPTS_AND_FEATURES.md)** - Konsep dan fitur lengkap (implemented & planned)
+- **[API Documentation](./docs/API_DOCUMENTATION.md)** - Dokumentasi lengkap 100+ API endpoints
+- **[Database Schema](./docs/DATABASE_SCHEMA.md)** - Dokumentasi schema database dan relationships
+- **[Architecture Overview](./docs/ARCHITECTURE_OVERVIEW.md)** - Arsitektur sistem dan design patterns
+- **[Deployment Guide](./docs/DEPLOYMENT_GUIDE.md)** - Panduan deployment ke berbagai platform
+- **[Developer Guide](./docs/DEVELOPER_GUIDE.md)** - Panduan teknis untuk developer
 
 ## Environment Variables
 

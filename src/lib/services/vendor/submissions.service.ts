@@ -10,6 +10,7 @@ export class SubmissionsService {
     logo_url?: string
     submitter_relationship?: string
     additional_info?: string
+    submitted_by?: string
   }): Promise<ToolSubmission> {
     try {
       const response = await fetch('/api/tools', {
@@ -28,7 +29,7 @@ export class SubmissionsService {
       }
 
       const data = await response.json();
-      return data as ToolSubmission;
+      return data.submission as ToolSubmission;
     } catch (error) {
       console.error('Error submitting tool:', error);
       throw error;

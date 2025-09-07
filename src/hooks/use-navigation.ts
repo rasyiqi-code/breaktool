@@ -53,7 +53,7 @@ export function useNavigation() {
       if (!user?.id) return;
       
       try {
-        const response = await fetch('/api/community/notifications');
+        const response = await fetch(`/api/community/notifications?userId=${user.id}`);
         if (response.ok) {
           const notifications = await response.json();
           const unread = notifications.filter((n: Notification) => !n.read_at).length;
