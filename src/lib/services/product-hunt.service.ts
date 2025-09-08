@@ -135,8 +135,7 @@ export class ProductHuntService {
   static async getProductsByDateRange(
     limit: number = 20, 
     startDate?: string, 
-    endDate?: string,
-    orderBy: 'VOTES' | 'CREATED_AT' = 'CREATED_AT'
+    endDate?: string
   ): Promise<ProductHuntProduct[]> {
     if (!this.DEVELOPER_TOKEN) {
       throw new Error('Product Hunt Developer Token not configured');
@@ -206,7 +205,7 @@ export class ProductHuntService {
         throw new Error(`Product Hunt GraphQL errors: ${JSON.stringify(data.errors)}`);
       }
 
-      return data.data.posts.edges.map((edge: any) => edge.node);
+      return data.data.posts.edges.map((edge: { node: ProductHuntProduct }) => edge.node);
     } catch (error) {
       console.error('Error fetching products by date range from Product Hunt:', error);
       throw error;
@@ -732,12 +731,11 @@ export class ProductHuntService {
     adminUserId: string,
     startDate?: string,
     endDate?: string,
-    orderBy: 'VOTES' | 'CREATED_AT' = 'CREATED_AT',
     forceSync: boolean = false,
     updateExisting: boolean = false
   ): Promise<SyncResult> {
     try {
-      const products = await this.getProductsByDateRange(limit, startDate, endDate, orderBy);
+      const products = await this.getProductsByDateRange(limit, startDate, endDate);
       
       const result: SyncResult = {
         created: 0,
@@ -870,7 +868,7 @@ export class ProductHuntService {
   /**
    * Sync old data with categories (for tools without categories)
    */
-  static async syncOldDataWithCategories(adminUserId: string): Promise<SyncResult> {
+  static async syncOldDataWithCategories(): Promise<SyncResult> {
     try {
       // Find tools without categories
       const toolsWithoutCategories = await prisma.tool.findMany({
@@ -983,15 +981,58 @@ export class ProductHuntService {
   }
 
   /**
-   * Find Product Hunt data by tool (mock implementation - would need actual Product Hunt search)
+   * Find Product Hunt data by tool name or website
    */
-  private static async findProductHuntDataByTool(tool: any): Promise<{ topics: string[] } | null> {
-    // This is a simplified implementation
-    // In a real scenario, you would search Product Hunt API for matching products
-    
-    // For now, return null to indicate no Product Hunt data found
-    // This would need to be implemented with actual Product Hunt search API
-    return null;
+  private static async findProductHuntDataByTool(tool: { name: string; website?: string }): Promise<{ topics: string[] } | null> {
+    if (!this.DEVELOPER_TOKEN) {
+      return null;
+    }
+
+    try {
+      // Search for products by name or website
+      const searchTerms = [tool.name];
+      if (tool.website) {
+        // Extract domain from website
+        try {
+          const domain = new URL(tool.website).hostname.replace('www.', '');
+          searchTerms.push(domain);
+        } catch {
+          // Invalid URL, skip
+        }
+      }
+
+      // Try to find matching products from trending products
+      const products = await this.getTrendingProducts(50); // Get more products for better matching
+      
+      for (const product of products) {
+        // Check if product name matches
+        const nameMatch = product.name.toLowerCase().includes(tool.name.toLowerCase()) ||
+                         tool.name.toLowerCase().includes(product.name.toLowerCase());
+        
+        // Check if website matches
+        let websiteMatch = false;
+        if (tool.website && product.website) {
+          try {
+            const toolDomain = new URL(tool.website).hostname.replace('www.', '');
+            const productDomain = new URL(product.website).hostname.replace('www.', '');
+            websiteMatch = toolDomain === productDomain;
+          } catch {
+            // Invalid URLs, skip
+          }
+        }
+
+        if (nameMatch || websiteMatch) {
+          // Extract topics from the matching product
+          const topics = product.topics?.edges?.map((edge: { node: { name: string } }) => edge.node.name) || [];
+          return { topics };
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error finding Product Hunt data by tool:', error);
+      return null;
+    }
   }
 
   /**

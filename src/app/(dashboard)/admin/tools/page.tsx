@@ -272,7 +272,6 @@ export default function AdminToolsPage() {
     productUrl?: string;
     startDate?: string;
     endDate?: string;
-    orderBy?: 'VOTES' | 'CREATED_AT';
     limit?: number;
   } = {}) => {
     setSyncing(true);
@@ -291,8 +290,7 @@ export default function AdminToolsPage() {
           syncSingleProduct: options.syncSingleProduct || false,
           productUrl: options.productUrl,
           startDate: options.startDate,
-          endDate: options.endDate,
-          orderBy: options.orderBy || 'CREATED_AT'
+          endDate: options.endDate
         }),
       });
 
@@ -633,12 +631,11 @@ export default function AdminToolsPage() {
                         handleSyncProductHunt({ 
                           syncByDate: true, 
                           startDate: today,
-                          orderBy: 'CREATED_AT'
                         });
                         setShowSyncDropdown(false);
                       }}
                     >
-                      <div className="font-medium">Sync Today's Products</div>
+                      <div className="font-medium">Sync Today&apos;s Products</div>
                       <div className="text-xs text-gray-500">Get products launched today</div>
                     </button>
                     
@@ -655,12 +652,11 @@ export default function AdminToolsPage() {
                           syncByDate: true, 
                           startDate: yesterdayStr,
                           endDate: todayStr,
-                          orderBy: 'CREATED_AT'
                         });
                         setShowSyncDropdown(false);
                       }}
                     >
-                      <div className="font-medium">Sync Yesterday's Products</div>
+                      <div className="font-medium">Sync Yesterday&apos;s Products</div>
                       <div className="text-xs text-gray-500">Get products launched yesterday</div>
                     </button>
                     
@@ -677,12 +673,11 @@ export default function AdminToolsPage() {
                           syncByDate: true, 
                           startDate: weekAgoStr,
                           endDate: todayStr,
-                          orderBy: 'CREATED_AT'
                         });
                         setShowSyncDropdown(false);
                       }}
                     >
-                      <div className="font-medium">Sync This Week's Products</div>
+                      <div className="font-medium">Sync This Week&apos;s Products</div>
                       <div className="text-xs text-gray-500">Get products from last 7 days</div>
                     </button>
                     
@@ -874,7 +869,7 @@ export default function AdminToolsPage() {
                   onCheckedChange={handleSelectAll}
                   ref={(el) => {
                     if (el && 'indeterminate' in el) {
-                      (el as any).indeterminate = isIndeterminate();
+                      (el as HTMLInputElement).indeterminate = isIndeterminate();
                     }
                   }}
                 />
@@ -910,7 +905,7 @@ export default function AdminToolsPage() {
                   onCheckedChange={handleSelectAll}
                   ref={(el) => {
                     if (el && 'indeterminate' in el) {
-                      (el as any).indeterminate = isIndeterminate();
+                      (el as HTMLInputElement).indeterminate = isIndeterminate();
                     }
                   }}
                 />

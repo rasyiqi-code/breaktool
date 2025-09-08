@@ -93,7 +93,6 @@ export async function POST(request: NextRequest) {
     const productUrl = body.productUrl;
     const startDate = body.startDate;
     const endDate = body.endDate;
-    const orderBy = body.orderBy || 'CREATED_AT';
 
     // Validate limit
     if (limit < 1 || limit > 50) {
@@ -132,14 +131,13 @@ export async function POST(request: NextRequest) {
       syncSingleProduct,
       productUrl,
       startDate,
-      endDate,
-      orderBy
+      endDate
     });
 
     // Perform sync based on parameters
     let result;
     if (syncOldData) {
-      result = await ProductHuntService.syncOldDataWithCategories(dbUser.id);
+      result = await ProductHuntService.syncOldDataWithCategories();
     } else if (syncSingleProduct) {
       if (!productUrl) {
         return NextResponse.json(
@@ -159,7 +157,6 @@ export async function POST(request: NextRequest) {
         dbUser.id,
         startDate,
         endDate,
-        orderBy,
         forceSync,
         updateExisting
       );

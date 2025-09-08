@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RequireRole } from '@/components/auth/require-role';
-import { Star, DollarSign, Eye, TrendingUp, Building, FileText, Plus, ExternalLink, Download, ChevronDown } from 'lucide-react';
+import { Star, DollarSign, Eye, TrendingUp, Building, FileText, Plus, ExternalLink, Download } from 'lucide-react';
 import Link from 'next/link';
 
 export default function VendorDashboardPage() {
@@ -48,7 +48,7 @@ export default function VendorDashboardPage() {
 
       if (response.ok) {
         const result = await response.json();
-        alert(`Successfully synced product: ${result.result?.details?.created?.join(', ') || 'Product synced'}`);
+        alert(`Successfully synced product: ${result.result?.details?.created?.join(', ') || 'Product synced'}\n\nNote: The synced product is now waiting for admin approval before it goes live on the platform.`);
         setShowSingleProductModal(false);
         setSingleProductUrl('');
       } else {
@@ -155,7 +155,7 @@ export default function VendorDashboardPage() {
             </CardHeader>
             <CardContent>
               <p className="text-xs text-muted-foreground dark:text-gray-400 mb-3">
-                Import tools from Product Hunt
+                Import tools from Product Hunt (requires admin approval)
               </p>
               <Button 
                 variant="outline" 
@@ -255,7 +255,7 @@ export default function VendorDashboardPage() {
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No recent activity</h3>
               <p className="text-muted-foreground dark:text-gray-400 mb-4">
-                Your recent submissions and updates will appear here
+                Your recent submissions and their approval status will appear here
               </p>
               <Button asChild>
                 <a href="/submit">
@@ -286,6 +286,7 @@ export default function VendorDashboardPage() {
                 <h4 className="font-medium text-foreground dark:text-white">Getting Started</h4>
                 <ul className="text-sm text-muted-foreground dark:text-gray-400 mt-1 space-y-1">
                   <li>• Submit your first tool using the &quot;Submit Tool&quot; button</li>
+                  <li>• Wait for admin approval before your tool goes live</li>
                   <li>• Monitor your tool&apos;s performance in the analytics section</li>
                   <li>• Engage with users through reviews and discussions</li>
                   <li>• Keep your tool information up to date</li>
@@ -326,6 +327,11 @@ export default function VendorDashboardPage() {
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Enter the full Product Hunt URL or just the slug
                   </p>
+                  <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                      <strong>Note:</strong> Synced products will be submitted for admin approval before going live on the platform.
+                    </p>
+                  </div>
                 </div>
                 
                 <div className="flex gap-2 justify-end">

@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get users with pagination
-    const [users, totalCount] = await Promise.all([
+    const [users] = await Promise.all([
       prisma.user.findMany({
         where,
         include: {
@@ -100,23 +100,25 @@ export async function GET(request: NextRequest) {
       prisma.user.count({ where })
     ]);
 
-    // Calculate statistics
-    const stats = await Promise.all([
-      prisma.user.count(),
-      prisma.user.count({ where: { verificationStatus: { in: ['approved', 'verified'] } } }),
-      prisma.user.count({ where: { verificationStatus: 'pending' } }),
-      prisma.user.count({ where: { verificationStatus: 'suspended' } })
-    ]);
+    // Calculate statistics (commented out as not used in response)
+    // const stats = await Promise.all([
+    //   prisma.user.count(),
+    //   prisma.user.count({ where: { verificationStatus: { in: ['approved', 'verified'] } } }),
+    //   prisma.user.count({ where: { verificationStatus: 'pending' } }),
+    //   prisma.user.count({ where: { verificationStatus: 'suspended' } })
+    // ]);
 
-    const [totalUsers, activeUsers, pendingUsers, suspendedUsers] = stats;
+    // Stats calculated but not used in response
+    // const [_totalUsers, _activeUsers, _pendingUsers, _suspendedUsers] = stats;
 
     // Transform users data to match frontend expectations
     const transformedUsers = users.map(user => {
       const currentRole = user.activeRole || user.role || 'user';
       const reviews = user.reviews || [];
-      const averageRating = reviews.length > 0 
-        ? reviews.reduce((sum, review) => sum + Number(review.overallScore || 0), 0) / reviews.length
-        : 0;
+      // Average rating calculated but not used in response
+      // const _averageRating = reviews.length > 0 
+      //   ? reviews.reduce((sum, review) => sum + Number(review.overallScore || 0), 0) / reviews.length
+      //   : 0;
 
       return {
         id: user.id,

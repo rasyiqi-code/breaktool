@@ -141,7 +141,7 @@ export default function SubmitPage() {
       
       toast({
         title: "Tool Submitted Successfully",
-        description: "Your tool has been submitted for review. We&apos;ll notify you once it&apos;s been processed.",
+        description: "Your tool has been submitted and is now waiting for admin approval. You will be notified once it has been reviewed and approved.",
         variant: "default"
       });
       
@@ -469,7 +469,7 @@ export default function SubmitPage() {
                     />
                     <Label htmlFor="agree_to_review" className="text-sm text-foreground">
                       I agree to the review process and understand that my submission will be reviewed 
-                      by our team before being published
+                      by our admin team before being approved and published
                     </Label>
                   </div>
 
@@ -508,8 +508,8 @@ export default function SubmitPage() {
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium">1</div>
                   <div>
-                    <h4 className="font-medium text-foreground">Submission Review</h4>
-                    <p className="text-sm text-muted-foreground">Our team reviews your submission for completeness and relevance</p>
+                    <h4 className="font-medium text-foreground">Admin Review</h4>
+                    <p className="text-sm text-muted-foreground">Our admin team reviews your submission for completeness and relevance</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
