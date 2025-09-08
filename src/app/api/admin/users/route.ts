@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
 
     const [totalUsers, activeUsers, pendingUsers, suspendedUsers] = stats;
 
-    // Transform users data
+    // Transform users data to match frontend expectations
     const transformedUsers = users.map(user => {
       const currentRole = user.activeRole || user.role || 'user';
       const reviews = user.reviews || [];
@@ -122,40 +122,25 @@ export async function GET(request: NextRequest) {
         id: user.id,
         name: user.name,
         email: user.email,
-        avatarUrl: user.avatarUrl,
         role: currentRole,
-        roles: user.userRoles.map(ur => ur.role),
-        status: user.verificationStatus,
-        trustScore: user.trustScore,
-        joinDate: user.createdAt.toISOString().split('T')[0],
-        lastActive: user.updatedAt.toISOString().split('T')[0],
-        averageRating: Math.round(averageRating * 10) / 10,
-        totalReviews: reviews.length,
-        toolsCount: user.submittedTools.length,
-        testsCompleted: user.testingReports.length,
-        isVerifiedTester: user.isVerifiedTester,
-        vendorStatus: user.vendorStatus,
-        badges: user.badges,
+        is_verified_tester: user.isVerifiedTester,
+        verification_status: user.verificationStatus,
+        vendor_status: user.vendorStatus,
+        trust_score: user.trustScore,
+        total_reviews: reviews.length,
+        helpful_votes_received: user.helpfulVotesReceived,
+        badges: user.badges || [],
+        expertise_areas: user.expertise || [],
         company: user.company,
-        location: user.location
+        location: user.location,
+        bio: user.bio,
+        created_at: user.createdAt.toISOString(),
+        verification_date: user.verifiedAt?.toISOString() || null,
+        verification_proof: null // This field doesn't exist in the schema, keeping as null
       };
     });
 
-    return NextResponse.json({
-      users: transformedUsers,
-      pagination: {
-        page,
-        limit,
-        total: totalCount,
-        pages: Math.ceil(totalCount / limit)
-      },
-      statistics: {
-        totalUsers,
-        activeUsers,
-        pendingUsers,
-        suspendedUsers
-      }
-    });
+    return NextResponse.json(transformedUsers);
 
   } catch (error) {
     console.error('Error fetching users:', error);

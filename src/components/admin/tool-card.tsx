@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import Image from "next/image";
 import { 
   CheckCircle, 
@@ -38,6 +39,8 @@ interface ToolCardProps {
   onEdit?: (tool: ToolSubmission) => void;
   onAddNotes?: (tool: ToolSubmission) => void;
   onDelete?: (toolId: string) => void;
+  isSelected?: boolean;
+  onSelect?: (checked: boolean) => void;
 }
 
 export function ToolCard({ 
@@ -46,7 +49,9 @@ export function ToolCard({
   onViewDetails, 
   onEdit, 
   onAddNotes, 
-  onDelete 
+  onDelete,
+  isSelected = false,
+  onSelect
 }: ToolCardProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -93,13 +98,20 @@ export function ToolCard({
   };
 
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50/50 hover:from-white hover:to-blue-50/30">
+    <Card className={`group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50/50 hover:from-white hover:to-blue-50/30 ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50/50' : ''}`}>
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
+              {onSelect && (
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={onSelect}
+                  className="mr-2"
+                />
+              )}
               {(tool as { logo_url?: string }).logo_url ? (
-                <div className="w-8 h-8 rounded-lg overflow-hidden bg-muted">
+                <div className="w-8 h-8 rounded-lg overflow-hidden bg-muted relative">
                   <Image
                     src={(tool as { logo_url?: string }).logo_url || ''}
                     alt={`${tool.name} logo`}

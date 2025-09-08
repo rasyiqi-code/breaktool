@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       activeRole: dbUser.activeRole
     });
 
-    // Check if user has admin role (more comprehensive check)
+    // Check if user has admin role or vendor role (for single product sync)
     const isAdmin = dbUser.role === 'admin' || 
                    dbUser.role === 'super_admin' ||
                    dbUser.activeRole === 'admin' || 
@@ -52,31 +52,48 @@ export async function POST(request: NextRequest) {
                    dbUser.primaryRole === 'admin' ||
                    dbUser.primaryRole === 'super_admin';
     
-    if (!isAdmin) {
-      console.log('User does not have admin access:', {
+    const isVendor = dbUser.role === 'vendor' || 
+                    dbUser.activeRole === 'vendor' || 
+                    dbUser.primaryRole === 'vendor';
+    
+    // For single product sync, allow both admin and vendor
+    const body = await request.json().catch(() => ({}));
+    const syncSingleProduct = body.syncSingleProduct || false;
+    
+    if (!isAdmin && !(isVendor && syncSingleProduct)) {
+      console.log('User does not have required access:', {
         userId: dbUser.id,
         userRole: dbUser.role,
         primaryRole: dbUser.primaryRole,
-        activeRole: dbUser.activeRole
+        activeRole: dbUser.activeRole,
+        syncSingleProduct
       });
       
       return NextResponse.json(
         { 
-          error: 'Admin access required',
+          error: 'Admin access required (or vendor access for single product sync)',
           debug: {
             userId: dbUser.id,
             userRole: dbUser.role,
             primaryRole: dbUser.primaryRole,
-            activeRole: dbUser.activeRole
+            activeRole: dbUser.activeRole,
+            syncSingleProduct
           }
         },
         { status: 403 }
       );
     }
 
-    // Get sync limit from request body or use default
-    const body = await request.json().catch(() => ({}));
+    // Get sync parameters from request body or use default
     const limit = body.limit || 20;
+    const forceSync = body.forceSync || false;
+    const updateExisting = body.updateExisting || false;
+    const syncOldData = body.syncOldData || false;
+    const syncByDate = body.syncByDate || false;
+    const productUrl = body.productUrl;
+    const startDate = body.startDate;
+    const endDate = body.endDate;
+    const orderBy = body.orderBy || 'CREATED_AT';
 
     // Validate limit
     if (limit < 1 || limit > 50) {
@@ -106,10 +123,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Starting Product Hunt sync with limit:', limit);
+    console.log('Starting Product Hunt sync with parameters:', { 
+      limit, 
+      forceSync, 
+      updateExisting, 
+      syncOldData,
+      syncByDate,
+      syncSingleProduct,
+      productUrl,
+      startDate,
+      endDate,
+      orderBy
+    });
 
-    // Perform sync
-    const result = await ProductHuntService.syncTrendingProducts(limit, dbUser.id);
+    // Perform sync based on parameters
+    let result;
+    if (syncOldData) {
+      result = await ProductHuntService.syncOldDataWithCategories(dbUser.id);
+    } else if (syncSingleProduct) {
+      if (!productUrl) {
+        return NextResponse.json(
+          { error: 'Product URL is required for single product sync' },
+          { status: 400 }
+        );
+      }
+      result = await ProductHuntService.syncSingleProductByUrl(
+        productUrl,
+        dbUser.id,
+        forceSync,
+        updateExisting
+      );
+    } else if (syncByDate) {
+      result = await ProductHuntService.syncProductsByDateRange(
+        limit,
+        dbUser.id,
+        startDate,
+        endDate,
+        orderBy,
+        forceSync,
+        updateExisting
+      );
+    } else {
+      result = await ProductHuntService.syncTrendingProducts(
+        limit, 
+        dbUser.id, 
+        forceSync, 
+        updateExisting
+      );
+    }
 
     return NextResponse.json({
       success: true,

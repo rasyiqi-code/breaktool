@@ -45,6 +45,7 @@ export default function SubmitPage() {
     name: "",
     website: "",
     description: "",
+    long_description: "",
     category_id: "",
     logo_url: "",
     submitter_relationship: "",
@@ -373,6 +374,18 @@ export default function SubmitPage() {
                       onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="Brief description of what this tool does and its main benefits"
                       rows={4}
+                      className="resize-none"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="long_description">Detailed Description</Label>
+                    <Textarea
+                      id="long_description"
+                      value={formData.long_description}
+                      onChange={(e) => setFormData(prev => ({ ...prev, long_description: e.target.value }))}
+                      placeholder="Provide a more detailed description of the tool, its features, use cases, and benefits. This will be shown on the tool's detail page."
+                      rows={6}
                       className="resize-none"
                     />
                   </div>

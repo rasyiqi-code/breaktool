@@ -213,6 +213,7 @@ model ToolSubmission {
   name                  String
   website               String
   description           String?
+  longDescription       String?   @map("long_description")
   categoryId            String?   @map("category_id")
   logoUrl               String?   @map("logo_url")
   submittedBy           String?   @map("submitted_by")

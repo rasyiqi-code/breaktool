@@ -149,7 +149,8 @@ export class BadgeService {
       }
 
       // Status badges
-      if (user.verificationStatus === 'pending') {
+      // Only show verification_pending for non-vendor users
+      if (user.verificationStatus === 'pending' && user.role !== 'vendor') {
         badges.push(this.BADGES.verification_pending)
       }
       

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { RequireRole } from "@/components/auth/require-role";
 
 import { 
   Search, 
@@ -31,6 +32,7 @@ interface User {
   role: 'user' | 'verified_tester' | 'vendor';
   is_verified_tester: boolean;
   verification_status: 'pending' | 'approved' | 'rejected' | null;
+  vendor_status: 'pending' | 'approved' | 'rejected' | null;
   trust_score: number;
   total_reviews: number;
   helpful_votes_received: number;
@@ -45,6 +47,14 @@ interface User {
 }
 
 export default function AdminUsersPage() {
+  return (
+    <RequireRole requiredRoles={['admin', 'super_admin']}>
+      <AdminUsersContent />
+    </RequireRole>
+  );
+}
+
+function AdminUsersContent() {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,7 +97,11 @@ export default function AdminUsersPage() {
 
     // Verification filter
     if (verificationFilter !== 'all') {
-      filtered = filtered.filter(user => user.verification_status === verificationFilter);
+      filtered = filtered.filter(user => {
+        // For vendors, check vendor_status; for others, check verification_status
+        const status = user.role === 'vendor' ? user.vendor_status : user.verification_status;
+        return status === verificationFilter;
+      });
     }
 
     setFilteredUsers(filtered);
@@ -126,12 +140,24 @@ export default function AdminUsersPage() {
 
   const handleVerificationChange = async (userId: string, newStatus: string) => {
     try {
-      const response = await fetch(`/api/admin/users/${userId}/verification`, {
+      const user = users.find(u => u.id === userId);
+      if (!user) return;
+
+      // Determine which endpoint to call based on user role
+      const endpoint = user.role === 'vendor' 
+        ? `/api/admin/users/${userId}/vendor-approval`
+        : `/api/admin/users/${userId}/verification`;
+      
+      const body = user.role === 'vendor' 
+        ? { status: newStatus }
+        : { verification_status: newStatus };
+
+      const response = await fetch(endpoint, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ verification_status: newStatus }),
+        body: JSON.stringify(body),
       });
 
       if (response.ok) {
@@ -140,10 +166,16 @@ export default function AdminUsersPage() {
           user.id === userId
             ? { 
                 ...user, 
-                verification_status: newStatus as 'pending' | 'approved' | 'rejected' | null,
-                is_verified_tester: newStatus === 'approved',
-                verification_date: newStatus === 'approved' ? new Date().toISOString() : user.verification_date,
-                role: newStatus === 'approved' ? 'verified_tester' as const : 'user' as const
+                // Update the appropriate status field based on role
+                ...(user.role === 'vendor' 
+                  ? { vendor_status: newStatus as 'pending' | 'approved' | 'rejected' | null }
+                  : { 
+                      verification_status: newStatus as 'pending' | 'approved' | 'rejected' | null,
+                      is_verified_tester: newStatus === 'approved',
+                      verification_date: newStatus === 'approved' ? new Date().toISOString() : user.verification_date,
+                      role: newStatus === 'approved' ? 'verified_tester' as const : 'user' as const
+                    }
+                )
               }
             : user
         ));
@@ -155,16 +187,25 @@ export default function AdminUsersPage() {
 
   const handleApprove = async (userId: string) => {
     const notes = reviewNotes[userId] || '';
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
     try {
-      const response = await fetch(`/api/admin/users/${userId}/verification`, {
+      // Determine which endpoint to call based on user role
+      const endpoint = user.role === 'vendor' 
+        ? `/api/admin/users/${userId}/vendor-approval`
+        : `/api/admin/users/${userId}/verification`;
+      
+      const body = user.role === 'vendor' 
+        ? { status: 'approved', review_notes: notes }
+        : { verification_status: 'approved', review_notes: notes };
+
+      const response = await fetch(endpoint, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          verification_status: 'approved',
-          review_notes: notes
-        }),
+        body: JSON.stringify(body),
       });
 
       if (response.ok) {
@@ -173,10 +214,16 @@ export default function AdminUsersPage() {
           user.id === userId
             ? { 
                 ...user, 
-                verification_status: 'approved',
-                is_verified_tester: true,
-                verification_date: new Date().toISOString(),
-                role: 'verified_tester' as const
+                // Update the appropriate status field based on role
+                ...(user.role === 'vendor' 
+                  ? { vendor_status: 'approved' as const }
+                  : { 
+                      verification_status: 'approved' as const,
+                      is_verified_tester: true,
+                      verification_date: new Date().toISOString(),
+                      role: 'verified_tester' as const
+                    }
+                )
               }
             : user
         ));
@@ -191,16 +238,25 @@ export default function AdminUsersPage() {
 
   const handleReject = async (userId: string) => {
     const notes = reviewNotes[userId] || '';
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
     try {
-      const response = await fetch(`/api/admin/users/${userId}/verification`, {
+      // Determine which endpoint to call based on user role
+      const endpoint = user.role === 'vendor' 
+        ? `/api/admin/users/${userId}/vendor-approval`
+        : `/api/admin/users/${userId}/verification`;
+      
+      const body = user.role === 'vendor' 
+        ? { status: 'rejected', review_notes: notes }
+        : { verification_status: 'rejected', review_notes: notes };
+
+      const response = await fetch(endpoint, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          verification_status: 'rejected',
-          review_notes: notes
-        }),
+        body: JSON.stringify(body),
       });
 
       if (response.ok) {
@@ -209,10 +265,16 @@ export default function AdminUsersPage() {
           user.id === userId
             ? { 
                 ...user, 
-                verification_status: 'rejected',
-                is_verified_tester: false,
-                verification_date: null,
-                role: 'user' as const
+                // Update the appropriate status field based on role
+                ...(user.role === 'vendor' 
+                  ? { vendor_status: 'rejected' as const }
+                  : { 
+                      verification_status: 'rejected' as const,
+                      is_verified_tester: false,
+                      verification_date: null,
+                      role: 'user' as const
+                    }
+                )
               }
             : user
         ));
@@ -236,7 +298,10 @@ export default function AdminUsersPage() {
     }
   };
 
-  const getVerificationBadge = (status: string | null) => {
+  const getVerificationBadge = (user: User) => {
+    // For vendors, show vendor_status; for others, show verification_status
+    const status = user.role === 'vendor' ? user.vendor_status : user.verification_status;
+    
     switch (status) {
       case 'approved':
         return <Badge variant="default" className="text-xs bg-green-100 text-green-800">Approved</Badge>;
@@ -368,7 +433,7 @@ export default function AdminUsersPage() {
                         <div className="flex items-center gap-3 mb-2">
                           <h3 className="text-xl font-semibold">{user.name || 'Unknown User'}</h3>
                           {getRoleBadge(user.role)}
-                          {getVerificationBadge(user.verification_status)}
+                          {getVerificationBadge(user)}
                         </div>
                         
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
@@ -463,9 +528,11 @@ export default function AdminUsersPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">Verification:</span>
+                      <span className="text-sm font-medium">
+                        {user.role === 'vendor' ? 'Vendor Status:' : 'Verification:'}
+                      </span>
                       <Select
-                        value={user.verification_status || ''}
+                        value={user.role === 'vendor' ? (user.vendor_status || '') : (user.verification_status || '')}
                         onValueChange={(value) => handleVerificationChange(user.id, value)}
                       >
                         <SelectTrigger className="w-32">
@@ -512,7 +579,11 @@ export default function AdminUsersPage() {
                           ...prev, 
                           [user.id]: !prev[user.id] 
                         }))}
-                        disabled={user.verification_status === 'approved' || user.verification_status === 'rejected'}
+                        disabled={
+                          user.role === 'vendor' 
+                            ? (user.vendor_status === 'approved' || user.vendor_status === 'rejected')
+                            : (user.verification_status === 'approved' || user.verification_status === 'rejected')
+                        }
                       >
                         <MessageSquare className="h-4 w-4 mr-1" />
                         Notes
@@ -522,7 +593,11 @@ export default function AdminUsersPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleApprove(user.id)}
-                        disabled={user.verification_status === 'approved'}
+                        disabled={
+                          user.role === 'vendor' 
+                            ? user.vendor_status === 'approved'
+                            : user.verification_status === 'approved'
+                        }
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
                         Approve
@@ -532,7 +607,11 @@ export default function AdminUsersPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleReject(user.id)}
-                        disabled={user.verification_status === 'rejected'}
+                        disabled={
+                          user.role === 'vendor' 
+                            ? user.vendor_status === 'rejected'
+                            : user.verification_status === 'rejected'
+                        }
                       >
                         <XCircle className="h-4 w-4 mr-1" />
                         Reject

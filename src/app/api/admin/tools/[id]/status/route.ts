@@ -54,6 +54,7 @@ export async function PATCH(
             name: submission.name,
             slug,
             description: submission.description,
+            longDescription: submission.longDescription,
             website: submission.website,
             logoUrl: submission.logoUrl,
             categoryId: submission.categoryId,

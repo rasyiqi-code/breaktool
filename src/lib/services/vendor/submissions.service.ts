@@ -6,6 +6,7 @@ export class SubmissionsService {
     name: string
     website: string
     description?: string
+    long_description?: string
     category_id?: string
     logo_url?: string
     submitter_relationship?: string
@@ -147,6 +148,7 @@ export class SubmissionsService {
     name?: string
     website?: string
     description?: string
+    long_description?: string
     category_id?: string
     logo_url?: string
     submitter_relationship?: string

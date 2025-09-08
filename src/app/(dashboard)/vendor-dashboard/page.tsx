@@ -7,13 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RequireRole } from '@/components/auth/require-role';
-import { Star, DollarSign, Eye, TrendingUp, Building, FileText, Plus, ExternalLink } from 'lucide-react';
+import { Star, DollarSign, Eye, TrendingUp, Building, FileText, Plus, ExternalLink, Download, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 
 export default function VendorDashboardPage() {
   const user = useUser();
   const [loading, setLoading] = useState(true);
   const [error] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [showSingleProductModal, setShowSingleProductModal] = useState(false);
+  const [singleProductUrl, setSingleProductUrl] = useState('');
 
   useEffect(() => {
     // Simulate loading
@@ -23,6 +26,42 @@ export default function VendorDashboardPage() {
 
     return () => clearTimeout(timer);
   }, []);
+
+  const handleSyncSingleProduct = async () => {
+    if (!singleProductUrl.trim()) {
+      alert('Please enter a Product Hunt URL');
+      return;
+    }
+
+    setSyncing(true);
+    try {
+      const response = await fetch('/api/admin/sync-product-hunt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          syncSingleProduct: true,
+          productUrl: singleProductUrl.trim()
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Successfully synced product: ${result.result?.details?.created?.join(', ') || 'Product synced'}`);
+        setShowSingleProductModal(false);
+        setSingleProductUrl('');
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to sync product');
+      }
+    } catch (error) {
+      console.error('Error syncing single product:', error);
+      alert(`Failed to sync product: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -105,6 +144,26 @@ export default function VendorDashboardPage() {
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Browse Tools
                 </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Sync from Product Hunt</CardTitle>
+              <Download className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground dark:text-gray-400 mb-3">
+                Import tools from Product Hunt
+              </p>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => setShowSingleProductModal(true)}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Sync Product
               </Button>
             </CardContent>
           </Card>
@@ -243,6 +302,56 @@ export default function VendorDashboardPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Single Product Sync Modal */}
+        {showSingleProductModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 shadow-xl">
+              <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                Sync Product from Product Hunt
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Product Hunt URL
+                  </label>
+                  <input
+                    type="url"
+                    value={singleProductUrl}
+                    onChange={(e) => setSingleProductUrl(e.target.value)}
+                    placeholder="https://www.producthunt.com/posts/example-product"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Enter the full Product Hunt URL or just the slug
+                  </p>
+                </div>
+                
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowSingleProductModal(false);
+                      setSingleProductUrl('');
+                    }}
+                    disabled={syncing}
+                    className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSyncSingleProduct}
+                    disabled={syncing || !singleProductUrl.trim()}
+                    className="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
+                  >
+                    {syncing ? 'Syncing...' : 'Sync Product'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </RequireRole>
   );
