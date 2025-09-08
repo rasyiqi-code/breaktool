@@ -259,18 +259,20 @@ export function TesterReportList({ toolId, toolName, readOnly = false }: TesterR
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleDownloadPDF(report.id, report.title)}
-                    className="h-8 w-8 p-0"
-                    title="Download PDF"
+                    onClick={readOnly ? undefined : () => handleDownloadPDF(report.id, report.title)}
+                    className={`h-8 w-8 p-0 ${readOnly ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title={readOnly ? "Login to download PDF" : "Download PDF"}
+                    disabled={readOnly}
                   >
                     <Download className="w-4 h-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => toggleExpanded(report.id)}
-                    className="h-8 w-8 p-0"
-                    title={isExpanded ? "Collapse" : "Expand"}
+                    onClick={readOnly ? undefined : () => toggleExpanded(report.id)}
+                    className={`h-8 w-8 p-0 ${readOnly ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title={readOnly ? "Login to expand" : (isExpanded ? "Collapse" : "Expand")}
+                    disabled={readOnly}
                   >
                     {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </Button>

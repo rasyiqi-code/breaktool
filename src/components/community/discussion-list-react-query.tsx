@@ -117,7 +117,7 @@ export function DiscussionListWithReactQuery({
   return (
     <div className="space-y-6">
       {/* Discussion Form */}
-      {showDiscussionForm && (
+      {showDiscussionForm && !readOnly && (
         <div className="mb-6">
           <DiscussionForm
             toolId={toolId}
@@ -129,7 +129,7 @@ export function DiscussionListWithReactQuery({
       )}
 
       {/* Start Discussion Button */}
-      {!showDiscussionForm && user && (
+      {!showDiscussionForm && user && !readOnly && (
         <div className="mb-6">
           <Button
             onClick={() => setShowDiscussionForm(true)}
