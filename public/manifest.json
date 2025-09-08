@@ -1,0 +1,26 @@
+{
+  "name": "Breaktool - SaaS Review Platform",
+  "short_name": "Breaktool",
+  "description": "Discover. Test. Decide. The most trusted SaaS review platform, by testers you can trust.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/breaktool-icon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml"
+    }
+  ]
+}

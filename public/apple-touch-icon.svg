@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" fill="none">
+  <!-- White background circle -->
+  <circle cx="90" cy="90" r="90" fill="white"/>
+  
+  <!-- Bold black letter B - Centered -->
+  <text x="90" y="110" font-family="Arial, sans-serif" font-size="100" font-weight="bold" text-anchor="middle" fill="black">B</text>
+</svg>
