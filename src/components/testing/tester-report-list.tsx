@@ -52,9 +52,10 @@ interface TestingReport {
 interface TesterReportListProps {
   toolId: string;
   toolName: string;
+  readOnly?: boolean;
 }
 
-export function TesterReportList({ toolId, toolName }: TesterReportListProps) {
+export function TesterReportList({ toolId, toolName, readOnly = false }: TesterReportListProps) {
   const [reports, setReports] = useState<TestingReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedReports, setExpandedReports] = useState<Set<string>>(new Set());

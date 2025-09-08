@@ -6,6 +6,7 @@ import { TrendingUp, Clock, Star, Search, BarChart3, Wrench, Users, MessageSquar
 import { OptimizedQueriesService } from "@/lib/services/optimized-queries.service"
 import { Footer } from "@/components/layout/footer"
 import Link from "next/link"
+import Image from "next/image"
 
 // Helper function to ensure data is serializable
 function ensureSerializable(data: unknown): unknown {
@@ -72,13 +73,33 @@ export default async function Home() {
               <br />
               <span className="text-muted-foreground">The most trusted SaaS review platform.</span>
             </h1>
+            
+            {/* Product Hunt Badge */}
+            <div className="flex justify-center mb-6">
+              <a 
+                href="https://www.producthunt.com/posts/breaktool" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-4 py-2 shadow-sm hover:shadow-md hover:border-orange-300 transition-all duration-200"
+              >
+                <span className="text-sm text-gray-600">Powered by</span>
+                <Image
+                  src="/product-hunt-logo.png"
+                  alt="Product Hunt Logo"
+                  width={120}
+                  height={30}
+                  className="h-6 w-auto opacity-80 group-hover:opacity-100 transition-opacity"
+                />
+              </a>
+            </div>
+            
             <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-              Get reviews from <strong className="text-foreground">verified experts</strong> and <strong className="text-foreground">professional testers</strong> 
-              who have actually used these tools in real scenarios. Stop guessing, start deciding.
+              Get reviews from <strong className="text-foreground">verified experts</strong> and <strong className="text-foreground">professional testers </strong> 
+               who have actually used these tools in real scenarios. Stop guessing, start deciding.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button size="lg" className="w-full sm:w-auto">
-                Browse Tools
+                Claim Yours
               </Button>
               <Button variant="outline" size="lg" className="w-full sm:w-auto">
                 Become a Verified Tester

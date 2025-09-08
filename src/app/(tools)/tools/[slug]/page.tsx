@@ -632,42 +632,57 @@ export default function ToolDetailPage() {
                   </Sheet>
 
                   <Button 
-                    onClick={handleUpvote} 
+                    onClick={user ? handleUpvote : undefined} 
                     disabled={upvoting || !user}
                     size="sm"
-                    title={`${isUpvoted ? 'Upvoted' : 'Upvote'} (${(tool.upvotes as number) || 0})`}
+                    title={user ? `${isUpvoted ? 'Upvoted' : 'Upvote'} (${(tool.upvotes as number) || 0})` : 'Login to upvote'}
+                    className={!user ? 'opacity-60 cursor-not-allowed' : ''}
                   >
                     <Heart className={`w-4 h-4 ${isUpvoted ? 'fill-current' : ''}`} />
                   </Button>
                   
-                  {user && (
-                    <>
-                      <Button 
-                        variant={activeTab === 'reviews' ? 'default' : 'outline'}
-                        onClick={() => setActiveTab('reviews')}
-                        size="sm"
-                        title="Reviews"
-                      >
-                        <PenTool className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant={activeTab === 'discussions' ? 'default' : 'outline'}
-                        onClick={() => setActiveTab('discussions')}
-                        size="sm"
-                        title="Discussions"
-                      >
-                        <MessageSquare className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant={activeTab === 'tester-reports' ? 'default' : 'outline'}
-                        onClick={() => setActiveTab('tester-reports')}
-                        size="sm"
-                        title="Tester Reports"
-                      >
-                        <FileText className="w-4 h-4" />
-                      </Button>
-                    </>
-                  )}
+                  <Button 
+                    variant={activeTab === 'reviews' ? 'default' : 'outline'}
+                    onClick={user ? () => setActiveTab('reviews') : undefined}
+                    size="sm"
+                    title={user ? "Reviews" : "Login to view reviews"}
+                    className={`relative ${!user ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  >
+                    <PenTool className="w-4 h-4" />
+                    {(toolStats?.totalReviews as number) > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                        {(toolStats?.totalReviews as number) > 99 ? '99+' : (toolStats?.totalReviews as number)}
+                      </span>
+                    )}
+                  </Button>
+                  <Button 
+                    variant={activeTab === 'discussions' ? 'default' : 'outline'}
+                    onClick={user ? () => setActiveTab('discussions') : undefined}
+                    size="sm"
+                    title={user ? "Discussions" : "Login to view discussions"}
+                    className={`relative ${!user ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    {(toolStats?.totalDiscussions as number) > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                        {(toolStats?.totalDiscussions as number) > 99 ? '99+' : (toolStats?.totalDiscussions as number)}
+                      </span>
+                    )}
+                  </Button>
+                  <Button 
+                    variant={activeTab === 'tester-reports' ? 'default' : 'outline'}
+                    onClick={user ? () => setActiveTab('tester-reports') : undefined}
+                    size="sm"
+                    title={user ? "Tester Reports" : "Login to view tester reports"}
+                    className={`relative ${!user ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  >
+                    <FileText className="w-4 h-4" />
+                    {(toolStats?.totalTesterReports as number) > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                        {(toolStats?.totalTesterReports as number) > 99 ? '99+' : (toolStats?.totalTesterReports as number)}
+                      </span>
+                    )}
+                  </Button>
                   
                   <Button 
                     variant="outline" 
@@ -682,33 +697,39 @@ export default function ToolDetailPage() {
                 </div>
 
                 {/* Right side - Context action buttons */}
-                {user && (
-                  <div className="flex items-center gap-2">
-                    {/* Write Review Button - only show when reviews tab is active */}
-                    {activeTab === 'reviews' && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={showReviewForm ? () => setShowReviewForm(false) : handleWriteReviewClick}
-                        title={showReviewForm ? 'Cancel' : 'Write Review'}
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </Button>
-                    )}
-                    
-                    {/* Start Discussion Button - only show when discussions tab is active */}
-                    {activeTab === 'discussions' && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={handleStartDiscussionClick}
-                        title="Start Discussion"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  {/* Write Review Button - only show when reviews tab is active */}
+                  {activeTab === 'reviews' && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={user ? (showReviewForm ? () => setShowReviewForm(false) : handleWriteReviewClick) : undefined}
+                      title={user ? (showReviewForm ? 'Cancel' : 'Write Review') : 'Login to write review'}
+                      className={`flex items-center gap-2 ${!user ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      <span className="hidden sm:inline text-sm">
+                        {showReviewForm ? 'Cancel' : 'Write Review'}
+                      </span>
+                    </Button>
+                  )}
+                  
+                  {/* Start Discussion Button - only show when discussions tab is active */}
+                  {activeTab === 'discussions' && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={user ? handleStartDiscussionClick : undefined}
+                      title={user ? "Start Discussion" : "Login to start discussion"}
+                      className={`flex items-center gap-2 ${!user ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span className="hidden sm:inline text-sm">
+                        Start Discussion
+                      </span>
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {/* Content Area */}
@@ -717,14 +738,20 @@ export default function ToolDetailPage() {
                   <div>
                     <div className="mb-4 sm:mb-6">
                       <h3 className="text-lg sm:text-xl font-semibold">Reviews</h3>
+                      {!user && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Login to interact with reviews and write your own
+                        </p>
+                      )}
                     </div>
                     <EnhancedReviewList 
                       toolId={tool.id as string}
                       toolName={tool.name as string}
                       onWriteReview={() => setShowReviewForm(true)}
                       showWriteReviewButton={false}
-                      showFilters={true}
+                      showFilters={user ? true : false}
                       maxReviews={10}
+                      readOnly={!user}
                     />
                     
                     {/* Inline Review Form */}
@@ -744,11 +771,17 @@ export default function ToolDetailPage() {
                   <div>
                     <div className="mb-4 sm:mb-6">
                       <h3 className="text-lg sm:text-xl font-semibold">Discussions</h3>
+                      {!user && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Login to participate in discussions and start your own
+                        </p>
+                      )}
                     </div>
                     <DiscussionListWithReactQuery 
                       toolId={tool.id as string}
                       toolName={tool.name as string}
                       onStartDiscussion={undefined}
+                      readOnly={!user}
                     />
                     
                     {/* Discussion Form */}
@@ -766,9 +799,18 @@ export default function ToolDetailPage() {
                   </div>
                 ) : activeTab === 'tester-reports' ? (
                   <div>
+                    <div className="mb-4 sm:mb-6">
+                      <h3 className="text-lg sm:text-xl font-semibold">Tester Reports</h3>
+                      {!user && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Login to view detailed tester reports and insights
+                        </p>
+                      )}
+                    </div>
                     <TesterReportList 
                       toolId={tool.id as string}
                       toolName={tool.name as string}
+                      readOnly={!user}
                     />
                   </div>
                 ) : null}

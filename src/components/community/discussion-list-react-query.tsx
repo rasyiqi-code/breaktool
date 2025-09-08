@@ -45,11 +45,13 @@ interface DiscussionListProps {
   toolId: string
   toolName: string
   onStartDiscussion?: () => void
+  readOnly?: boolean
 }
 
 export function DiscussionListWithReactQuery({ 
   toolId, 
-  toolName
+  toolName,
+  readOnly = false
 }: DiscussionListProps) {
   const user = useUser()
   const [discussions, setDiscussions] = useState<Discussion[]>([])

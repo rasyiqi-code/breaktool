@@ -34,6 +34,7 @@ interface EnhancedReviewListProps {
   maxReviews?: number;
   onWriteReview?: () => void;
   showWriteReviewButton?: boolean;
+  readOnly?: boolean;
 }
 
 const SORT_OPTIONS = [
@@ -67,7 +68,8 @@ export function EnhancedReviewList({
   showFilters = true,
   maxReviews = 50,
   onWriteReview,
-  showWriteReviewButton = false
+  showWriteReviewButton = false,
+  readOnly = false
 }: EnhancedReviewListProps) {
   const [reviews, setReviews] = useState<(Review & { user?: User })[]>(initialReviews);
   const [filteredReviews, setFilteredReviews] = useState<(Review & { user?: User })[]>(initialReviews);
@@ -337,7 +339,7 @@ export function EnhancedReviewList({
       </div>
 
       {/* Filters and Controls */}
-      {showFilters && (
+      {showFilters && !readOnly && (
         <div className="space-y-4">
               {/* Search and Basic Filters */}
               <div className="flex items-center gap-3">

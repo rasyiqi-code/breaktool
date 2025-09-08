@@ -612,40 +612,40 @@ export function ReviewForm({ toolName, onSubmit, onCancel, isLoading = false }: 
             Your overall recommendation for this tool
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4 pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 ${
+        <CardContent className="space-y-3 pt-3">
+          <div className="grid grid-cols-3 gap-2">
+            <div className={`p-2 rounded-md border cursor-pointer transition-all duration-200 hover:scale-105 ${
               formData.recommendation === 'keep' 
-                ? 'border-green-500 bg-green-50 dark:bg-green-950 shadow-lg' 
+                ? 'border-green-500 bg-green-50 dark:bg-green-950 shadow-md' 
                 : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
             }`} onClick={() => setFormData(prev => ({ ...prev, recommendation: 'keep' }))}>
-              <div className="text-center space-y-2">
-                <div className="text-3xl">🟢</div>
-                <div className="font-semibold text-base">Keep</div>
+              <div className="text-center space-y-1">
+                <div className="text-lg">🟢</div>
+                <div className="font-medium text-sm">Keep</div>
                 <div className="text-xs text-muted-foreground">Highly recommend</div>
               </div>
             </div>
             
-            <div className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 ${
+            <div className={`p-2 rounded-md border cursor-pointer transition-all duration-200 hover:scale-105 ${
               formData.recommendation === 'try' 
-                ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950 shadow-lg' 
+                ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950 shadow-md' 
                 : 'border-gray-200 dark:border-gray-700 hover:border-yellow-300'
             }`} onClick={() => setFormData(prev => ({ ...prev, recommendation: 'try' }))}>
-              <div className="text-center space-y-2">
-                <div className="text-3xl">🟡</div>
-                <div className="font-semibold text-base">Try</div>
+              <div className="text-center space-y-1">
+                <div className="text-lg">🟡</div>
+                <div className="font-medium text-sm">Try</div>
                 <div className="text-xs text-muted-foreground">Worth testing</div>
               </div>
             </div>
             
-            <div className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 ${
+            <div className={`p-2 rounded-md border cursor-pointer transition-all duration-200 hover:scale-105 ${
               formData.recommendation === 'stop' 
-                ? 'border-red-500 bg-red-50 dark:bg-red-950 shadow-lg' 
+                ? 'border-red-500 bg-red-50 dark:bg-red-950 shadow-md' 
                 : 'border-gray-200 dark:border-gray-700 hover:border-red-300'
             }`} onClick={() => setFormData(prev => ({ ...prev, recommendation: 'stop' }))}>
-              <div className="text-center space-y-2">
-                <div className="text-3xl">🔴</div>
-                <div className="font-semibold text-base">Stop</div>
+              <div className="text-center space-y-1">
+                <div className="text-lg">🔴</div>
+                <div className="font-medium text-sm">Stop</div>
                 <div className="text-xs text-muted-foreground">Not recommended</div>
               </div>
             </div>
