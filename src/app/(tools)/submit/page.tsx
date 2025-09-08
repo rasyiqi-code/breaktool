@@ -29,6 +29,7 @@ import {
 import { SubmissionsService } from "@/lib/services/vendor/submissions.service";
 import type { Category } from "@/types/app";
 import { useToast } from "@/hooks/use-toast";
+import { ActivityIntegration } from "@/lib/utils/activity-integration";
 
 export default function SubmitPage() {
   const router = useRouter();
@@ -130,6 +131,12 @@ export default function SubmitPage() {
       };
 
       await SubmissionsService.submitTool(submissionData);
+      
+      // Log the activity
+      ActivityIntegration.logToolSubmissionFromPage(
+        formData.name,
+        ('name' in user ? (user as { name?: string }).name : null) || ('email' in user ? (user as { email?: string }).email : null) || 'Unknown User'
+      );
       
       toast({
         title: "Tool Submitted Successfully",

@@ -24,15 +24,15 @@ export async function GET() {
     // Get recent reviews
     const { data: recentReviews } = await supabase
       .from('reviews')
-      .select('id, tool_id, user_id, review_type, created_at')
-      .order('created_at', { ascending: false })
+      .select('id, tool_id, user_id, review_type, createdAt')
+      .order('createdAt', { ascending: false })
       .limit(5);
 
     // Get recent user verifications
     const { data: recentVerifications } = await supabase
       .from('users')
-      .select('id, name, is_verified_tester, verification_date')
-      .eq('is_verified_tester', true)
+      .select('id, name, isVerifiedTester, verification_date')
+      .eq('isVerifiedTester', true)
       .order('verification_date', { ascending: false })
       .limit(5);
 
@@ -62,7 +62,7 @@ export async function GET() {
           type: 'review_created',
           title: `New ${review.review_type} review`,
           description: `A ${review.review_type} review was created`,
-          timestamp: review.created_at,
+          timestamp: review.createdAt,
           status: 'approved'
         });
       });

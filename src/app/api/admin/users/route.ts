@@ -1,68 +1,164 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { stackServerApp } from '@/lib/stack-server';
+import { RoleManagementService } from '@/lib/services/users/role-management.service';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // Get all users with related data using Prisma, excluding admin and super_admin
-    const users = await prisma.user.findMany({
-      where: {
-        role: {
-          notIn: ['admin', 'super_admin']
-        }
-      },
-      include: {
-        reviews: {
-          select: {
-            id: true,
-            helpfulVotes: true,
-            totalVotes: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
-
-    // Calculate total reviews and helpful votes for each user
-    const usersWithStats = users.map(user => {
-      const reviews = user.reviews || [];
-      const totalReviews = reviews.length;
-      const helpfulVotesReceived = reviews.reduce((sum: number, review: { helpfulVotes: number }) => 
-        sum + (review.helpfulVotes || 0), 0
+    // Check admin authentication
+    const currentUser = await stackServerApp.getUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
       );
+    }
+
+    // Check if current user is admin or super_admin
+    const hasAdminRole = await RoleManagementService.userHasRole(currentUser.id, 'admin') ||
+                         await RoleManagementService.userHasRole(currentUser.id, 'super_admin');
+    
+    if (!hasAdminRole) {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const search = searchParams.get('search') || '';
+    const role = searchParams.get('role') || '';
+    const status = searchParams.get('status') || '';
+
+    const skip = (page - 1) * limit;
+
+    // Build where clause
+    const where: Record<string, unknown> = {};
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    if (role) {
+      where.OR = [
+        { role: role },
+        { activeRole: role },
+        { primaryRole: role },
+        { userRoles: { some: { role: role, isActive: true } } }
+      ];
+    }
+
+    if (status) {
+      if (status === 'active') {
+        where.verificationStatus = { in: ['approved', 'verified'] };
+      } else if (status === 'pending') {
+        where.verificationStatus = 'pending';
+      } else if (status === 'suspended') {
+        where.verificationStatus = 'suspended';
+      }
+    }
+
+    // Get users with pagination
+    const [users, totalCount] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        include: {
+          userRoles: {
+            where: { isActive: true }
+          },
+          reviews: {
+            select: {
+              id: true,
+              overallScore: true,
+              createdAt: true
+            }
+          },
+          submittedTools: {
+            select: {
+              id: true,
+              name: true,
+              status: true
+            }
+          },
+          testingReports: {
+            select: {
+              id: true,
+              status: true,
+              createdAt: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.user.count({ where })
+    ]);
+
+    // Calculate statistics
+    const stats = await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({ where: { verificationStatus: { in: ['approved', 'verified'] } } }),
+      prisma.user.count({ where: { verificationStatus: 'pending' } }),
+      prisma.user.count({ where: { verificationStatus: 'suspended' } })
+    ]);
+
+    const [totalUsers, activeUsers, pendingUsers, suspendedUsers] = stats;
+
+    // Transform users data
+    const transformedUsers = users.map(user => {
+      const currentRole = user.activeRole || user.role || 'user';
+      const reviews = user.reviews || [];
+      const averageRating = reviews.length > 0 
+        ? reviews.reduce((sum, review) => sum + Number(review.overallScore || 0), 0) / reviews.length
+        : 0;
 
       return {
-        // Transform Prisma camelCase to frontend snake_case
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
-        is_verified_tester: user.isVerifiedTester,
-        verification_status: user.verificationStatus,
-        trust_score: user.trustScore,
-        total_reviews: totalReviews,
-        helpful_votes_received: helpfulVotesReceived,
-        badges: user.badges,
-        expertise_areas: user.expertise,
-        company: user.company,
-        location: user.location,
-        bio: user.bio,
-        created_at: user.createdAt,
-        verification_date: user.verifiedAt,
-        verification_proof: null, // Not in schema yet
-        // Add other fields as needed
         avatarUrl: user.avatarUrl,
-        linkedinUrl: user.linkedinUrl,
-        websiteUrl: user.websiteUrl,
-        updatedAt: user.updatedAt
+        role: currentRole,
+        roles: user.userRoles.map(ur => ur.role),
+        status: user.verificationStatus,
+        trustScore: user.trustScore,
+        joinDate: user.createdAt.toISOString().split('T')[0],
+        lastActive: user.updatedAt.toISOString().split('T')[0],
+        averageRating: Math.round(averageRating * 10) / 10,
+        totalReviews: reviews.length,
+        toolsCount: user.submittedTools.length,
+        testsCompleted: user.testingReports.length,
+        isVerifiedTester: user.isVerifiedTester,
+        vendorStatus: user.vendorStatus,
+        badges: user.badges,
+        company: user.company,
+        location: user.location
       };
     });
 
-    return NextResponse.json(usersWithStats);
+    return NextResponse.json({
+      users: transformedUsers,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        pages: Math.ceil(totalCount / limit)
+      },
+      statistics: {
+        totalUsers,
+        activeUsers,
+        pendingUsers,
+        suspendedUsers
+      }
+    });
 
   } catch (error) {
-    console.error('Error in admin users API:', error);
+    console.error('Error fetching users:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

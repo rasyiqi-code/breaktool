@@ -24,7 +24,7 @@ interface DatabaseClaim {
   proof_of_ownership: string | null;
   additional_info: string | null;
   status: string;
-  created_at: Date;
+  createdAt: Date;
   reviewed_at: Date | null;
   review_notes: string | null;
 }
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
           JOIN tools t ON toc.tool_id = t.id
           JOIN users v ON toc.vendor_id = v.id
           LEFT JOIN users r ON toc.reviewed_by = r.id
-          ORDER BY toc.created_at DESC
+          ORDER BY toc.createdAt DESC
           LIMIT ${limit} OFFSET ${(page - 1) * limit}
         `,
         prisma.$queryRaw`
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
           JOIN users v ON toc.vendor_id = v.id
           LEFT JOIN users r ON toc.reviewed_by = r.id
           WHERE toc.status = ${status}
-          ORDER BY toc.created_at DESC
+          ORDER BY toc.createdAt DESC
           LIMIT ${limit} OFFSET ${(page - 1) * limit}
         `,
         prisma.$queryRaw`
@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
         proofOfOwnership: claim.proof_of_ownership,
         additionalInfo: claim.additional_info,
         status: claim.status,
-        createdAt: claim.created_at,
+        createdAt: claim.createdAt,
         reviewedAt: claim.reviewed_at,
         reviewNotes: claim.review_notes,
         reviewer: claim.reviewer_id ? {

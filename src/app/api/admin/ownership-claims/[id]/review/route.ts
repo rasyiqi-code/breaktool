@@ -23,7 +23,7 @@ interface DatabaseClaim {
   proof_of_ownership: string | null;
   additional_info: string | null;
   status: string;
-  created_at: Date;
+  createdAt: Date;
   reviewed_at: Date | null;
   review_notes: string | null;
 }
@@ -111,7 +111,7 @@ export async function PATCH(
         reviewed_by = ${user.id},
         reviewed_at = NOW(),
         review_notes = ${reviewNotes || null},
-        updated_at = NOW()
+        updatedAt = NOW()
       WHERE id = ${id}
     `;
 

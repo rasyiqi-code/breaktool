@@ -25,11 +25,14 @@ import {
   FileCheck,
   Building2,
   PlayCircle,
-  Eye
+  Eye,
+  RefreshCw
 } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { RequireRole } from '@/components/auth/require-role';
 import Image from 'next/image';
+import { useActivity } from '@/hooks/use-activity';
+import { ActivityLogger } from '@/lib/utils/activity-logger';
 
 interface AdminStats {
   totalUsers: number;
@@ -43,14 +46,14 @@ interface AdminStats {
   completedTestingTasks: number;
 }
 
-interface RecentActivity {
-  id: string;
-  type: 'tool_submitted' | 'review_created' | 'user_verified' | 'tool_approved';
-  title: string;
-  description: string;
-  timestamp: string;
-  status: 'pending' | 'approved' | 'rejected';
-}
+// interface RecentActivity {
+//   id: string;
+//   type: 'tool_submitted' | 'review_created' | 'user_verified' | 'tool_approved';
+//   title: string;
+//   description: string;
+//   timestamp: string;
+//   status: 'pending' | 'approved' | 'rejected';
+// }
 
 interface TestingStats {
   totalTasks: number;
@@ -108,6 +111,7 @@ interface VendorApplication {
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { activities, loading: activityLoading, refresh: refreshActivities } = useActivity();
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     totalTools: 0,
@@ -119,7 +123,6 @@ export default function AdminDashboard() {
     totalTestingTasks: 0,
     completedTestingTasks: 0
   });
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [pendingApplications, setPendingApplications] = useState<PendingApplication[]>([]);
   const [vendorApplications, setVendorApplications] = useState<VendorApplication[]>([]);
   const [testingStats, setTestingStats] = useState<TestingStats>({
@@ -133,11 +136,11 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchAdminStats();
-    fetchRecentActivity();
     fetchPendingApplications();
     fetchVendorApplications();
     fetchTestingStats();
     fetchRecentTasks();
+    
   }, []);
 
   const fetchAdminStats = async () => {
@@ -154,17 +157,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchRecentActivity = async () => {
-    try {
-      const response = await fetch('/api/admin/recent-activity');
-      if (response.ok) {
-        const data = await response.json();
-        setRecentActivity(data);
-      }
-    } catch (error) {
-      console.error('Error fetching recent activity:', error);
-    }
-  };
 
   const fetchPendingApplications = async () => {
     try {
@@ -204,10 +196,20 @@ export default function AdminDashboard() {
       });
 
       if (response.ok) {
+        // Find the application to get user name
+        const application = pendingApplications.find(app => app.userId === userId);
+        
+        // Log the activity
+        if (application) {
+          ActivityLogger.logUserVerification(application.userName, 'Admin');
+        }
+        
         // Remove from pending applications
         setPendingApplications(prev => prev.filter(app => app.userId !== userId));
         // Refresh stats
         fetchAdminStats();
+        // Refresh activities
+        refreshActivities();
       }
     } catch (error) {
       console.error('Error approving application:', error);
@@ -228,10 +230,28 @@ export default function AdminDashboard() {
       });
 
       if (response.ok) {
+        // Find the application to get user name
+        const application = vendorApplications.find(app => app.userId === userId);
+        
+        // Log the activity
+        if (application) {
+          ActivityLogger.logCustomActivity(
+            'user_verified',
+            'Vendor Approved',
+            `Vendor "${application.companyName}" approved for platform access`,
+            'approved',
+            application.userName,
+            undefined,
+            { companyName: application.companyName, approvedBy: 'Admin' }
+          );
+        }
+        
         // Remove from vendor applications
         setVendorApplications(prev => prev.filter(app => app.userId !== userId));
         // Refresh stats
         fetchAdminStats();
+        // Refresh activities
+        refreshActivities();
       }
     } catch (error) {
       console.error('Error approving vendor application:', error);
@@ -364,6 +384,14 @@ export default function AdminDashboard() {
         return <Award className="w-4 h-4" />;
       case 'tool_approved':
         return <CheckCircle className="w-4 h-4" />;
+      case 'user_registered':
+        return <Users className="w-4 h-4" />;
+      case 'testing_task_created':
+        return <TestTube className="w-4 h-4" />;
+      case 'report_submitted':
+        return <FileCheck className="w-4 h-4" />;
+      case 'discussion_created':
+        return <MessageSquare className="w-4 h-4" />;
       default:
         return <Clock className="w-4 h-4" />;
     }
@@ -386,7 +414,7 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen bg-background">
         
-        <div className="container mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-16">
+        <div className="w-full max-w-full px-2 sm:px-4 lg:px-6 pt-16 overflow-x-hidden">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
@@ -400,218 +428,397 @@ export default function AdminDashboard() {
 
   return (
     <RequireRole requiredRoles={['admin', 'super_admin']} redirectTo="/dashboard">
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background overflow-x-hidden">
       
-      <div className="container mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-16">
+      <div className="w-full max-w-full px-2 sm:px-4 lg:px-6 pt-16">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <Shield className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex items-center gap-3">
+                <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                <h1 className="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
+              </div>
               <Badge variant="destructive" className="text-sm">
                 <Shield className="w-3 h-3 mr-1" />
                 Admin
               </Badge>
             </div>
-            <NotificationBell />
+            <div className="flex justify-end">
+              <NotificationBell />
+            </div>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm sm:text-base">
             Manage platform content, moderate reviews, and conduct testing. Full admin access with testing capabilities.
           </p>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* Stats Overview - Redesigned with Charts and Tables */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          {/* Platform Overview Card */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-lg font-semibold">Platform Overview</CardTitle>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => router.push('/admin/analytics')}
+              >
+                View Detail
+              </Button>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalUsers}</div>
-              <p className="text-xs text-muted-foreground">
-                +{stats.verifiedTesters} verified testers
-              </p>
+            <CardContent className="space-y-4">
+              {/* Summary Table */}
+              <div className="overflow-x-auto -mx-2 sm:mx-0">
+                <table className="w-full text-sm min-w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 font-medium px-2">Metric</th>
+                      <th className="text-right py-2 font-medium px-2">Total</th>
+                      <th className="text-right py-2 font-medium px-2">Active</th>
+                      <th className="text-right py-2 font-medium px-2">Change</th>
+                    </tr>
+                  </thead>
+                  <tbody className="space-y-2">
+                    <tr className="border-b">
+                      <td className="py-2 px-2 flex items-center gap-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                        <span className="truncate">Users</span>
+                      </td>
+                      <td className="text-right py-2 px-2 font-semibold">{stats.totalUsers.toLocaleString()}</td>
+                      <td className="text-right py-2 px-2">{stats.verifiedTesters.toLocaleString()}</td>
+                      <td className="text-right py-2 px-2 text-green-600 flex items-center justify-end gap-1">
+                        <TrendingUp className="w-3 h-3 flex-shrink-0" />
+                        <span className="text-xs">+12.5%</span>
+                      </td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 px-2 flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                        <span className="truncate">Tools</span>
+                      </td>
+                      <td className="text-right py-2 px-2 font-semibold">{stats.totalTools.toLocaleString()}</td>
+                      <td className="text-right py-2 px-2">{stats.activeTools.toLocaleString()}</td>
+                      <td className="text-right py-2 px-2 text-green-600 flex items-center justify-end gap-1">
+                        <TrendingUp className="w-3 h-3 flex-shrink-0" />
+                        <span className="text-xs">+8.3%</span>
+                      </td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 px-2 flex items-center gap-2">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></div>
+                        <span className="truncate">Reviews</span>
+                      </td>
+                      <td className="text-right py-2 px-2 font-semibold">{stats.totalReviews.toLocaleString()}</td>
+                      <td className="text-right py-2 px-2">-</td>
+                      <td className="text-right py-2 px-2 text-green-600 flex items-center justify-end gap-1">
+                        <TrendingUp className="w-3 h-3 flex-shrink-0" />
+                        <span className="text-xs">+15.2%</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-2 flex items-center gap-2">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                        <span className="truncate">Tasks</span>
+                      </td>
+                      <td className="text-right py-2 px-2 font-semibold">{stats.totalTestingTasks.toLocaleString()}</td>
+                      <td className="text-right py-2 px-2">{stats.completedTestingTasks.toLocaleString()}</td>
+                      <td className="text-right py-2 px-2 text-red-600 flex items-center justify-end gap-1">
+                        <TrendingUp className="w-3 h-3 rotate-180 flex-shrink-0" />
+                        <span className="text-xs">-3.1%</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Simple Bar Chart */}
+              <div className="space-y-2 overflow-x-auto">
+                <div className="flex items-center justify-between text-xs">
+                  <span>Platform Growth</span>
+                  <span>Last 6 months</span>
+                </div>
+                <div className="flex items-end gap-1 h-16 min-w-[200px]">
+                  {[65, 78, 82, 75, 88, 92].map((height, index) => (
+                    <div key={index} className="flex-1 flex flex-col items-center min-w-[30px]">
+                      <div 
+                        className="w-full bg-blue-500 rounded-t"
+                        style={{ height: `${height}%` }}
+                      ></div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between text-xs text-muted-foreground min-w-[200px]">
+                  <span>Jan</span>
+                  <span>Feb</span>
+                  <span>Mar</span>
+                  <span>Apr</span>
+                  <span>May</span>
+                  <span>Jun</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
+          {/* Pending Items Card */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium">Total Tools</CardTitle>
-            <Wrench className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-lg font-semibold">Pending Items</CardTitle>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => router.push('/admin/analytics')}
+              >
+                View Detail
+              </Button>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalTools}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.activeTools} active, {stats.pendingToolSubmissions} pending
-              </p>
-            </CardContent>
-          </Card>
+            <CardContent className="space-y-4">
+              {/* Pending Summary */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+                  <div className="text-2xl font-bold text-red-600">{stats.pendingVerifications}</div>
+                  <div className="text-sm text-red-600">Verifications</div>
+                </div>
+                <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+                  <div className="text-2xl font-bold text-yellow-600">{stats.pendingToolSubmissions}</div>
+                  <div className="text-sm text-yellow-600">Tool Submissions</div>
+                </div>
+              </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Reviews</CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalReviews}</div>
-              <p className="text-xs text-muted-foreground">
-                Community feedback
-              </p>
-            </CardContent>
-          </Card>
+              {/* Pending Details Table */}
+              <div className="overflow-x-auto -mx-2 sm:mx-0">
+                <table className="w-full text-sm min-w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 font-medium px-2">Type</th>
+                      <th className="text-right py-2 font-medium px-2">Count</th>
+                      <th className="text-right py-2 font-medium px-2">Priority</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="py-2 px-2 flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-red-500 flex-shrink-0" />
+                        <span className="truncate">Tester Applications</span>
+                      </td>
+                      <td className="text-right py-2 px-2 font-semibold">{stats.pendingVerifications}</td>
+                      <td className="text-right py-2 px-2">
+                        <Badge variant="destructive" className="text-xs">High</Badge>
+                      </td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 px-2 flex items-center gap-2">
+                        <Wrench className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                        <span className="truncate">Tool Submissions</span>
+                      </td>
+                      <td className="text-right py-2 px-2 font-semibold">{stats.pendingToolSubmissions}</td>
+                      <td className="text-right py-2 px-2">
+                        <Badge variant="secondary" className="text-xs">Medium</Badge>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-2 flex items-center gap-2">
+                        <TestTube className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                        <span className="truncate">Testing Tasks</span>
+                      </td>
+                      <td className="text-right py-2 px-2 font-semibold">{stats.totalTestingTasks - stats.completedTestingTasks}</td>
+                      <td className="text-right py-2 px-2">
+                        <Badge variant="outline" className="text-xs">Low</Badge>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Verified Testers</CardTitle>
-              <Award className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.verifiedTesters}</div>
-              <p className="text-xs text-muted-foreground">
-                Expert reviewers
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Verifications</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.pendingVerifications}</div>
-              <p className="text-xs text-muted-foreground">
-                Tester applications
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Testing Tasks</CardTitle>
-              <TestTube className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalTestingTasks}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.completedTestingTasks} completed
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Tools</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.pendingToolSubmissions}</div>
-              <p className="text-xs text-muted-foreground">
-                Awaiting approval
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Tools</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.activeTools}</div>
-              <p className="text-xs text-muted-foreground">
-                Live on platform
-              </p>
+              {/* Progress Bars */}
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>Verification Progress</span>
+                    <span>{Math.round((stats.verifiedTesters / (stats.verifiedTesters + stats.pendingVerifications)) * 100)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-red-500 h-2 rounded-full"
+                      style={{ width: `${(stats.verifiedTesters / (stats.verifiedTesters + stats.pendingVerifications)) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>Tool Approval Progress</span>
+                    <span>{Math.round((stats.activeTools / (stats.activeTools + stats.pendingToolSubmissions)) * 100)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-yellow-500 h-2 rounded-full"
+                      style={{ width: `${(stats.activeTools / (stats.activeTools + stats.pendingToolSubmissions)) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 sm:gap-3 mb-6 sm:mb-8">
           <Button 
-            className="h-auto p-4 flex flex-col items-center gap-2"
-            onClick={() => router.push('/admin/create-task')}
+            className="h-auto p-2 sm:p-4 flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base"
+            onClick={() => {
+              ActivityLogger.logTestingTaskCreation('New Tool', 'Admin');
+              refreshActivities();
+              router.push('/admin/create-task');
+            }}
           >
-            <TestTube className="h-5 w-5" />
-            <span>Create Testing Task</span>
+            <TestTube className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="text-center">Create Testing Task</span>
           </Button>
           <Button 
             variant="outline" 
-            className="h-auto p-4 flex flex-col items-center gap-2"
-            onClick={() => router.push('/admin/tasks')}
+            className="h-auto p-2 sm:p-4 flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base"
+            onClick={() => {
+              ActivityLogger.logCustomActivity(
+                'testing_task_created',
+                'Admin Task Management',
+                'Admin accessed task management section',
+                'pending',
+                'Admin'
+              );
+              refreshActivities();
+              router.push('/admin/tasks');
+            }}
           >
-            <Eye className="h-5 w-5" />
-            <span>Manage Tasks</span>
+            <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="text-center">Manage Tasks</span>
           </Button>
           <Button 
             variant="outline" 
-            className="h-auto p-4 flex flex-col items-center gap-2"
-            onClick={() => router.push('/admin/approve-reports')}
+            className="h-auto p-2 sm:p-4 flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base"
+            onClick={() => {
+              ActivityLogger.logCustomActivity(
+                'report_submitted',
+                'Admin Report Review',
+                'Admin accessed report approval section',
+                'pending',
+                'Admin'
+              );
+              refreshActivities();
+              router.push('/admin/approve-reports');
+            }}
           >
-            <FileCheck className="h-5 w-5" />
-            <span>Approve Reports</span>
+            <FileCheck className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="text-center">Approve Reports</span>
           </Button>
           <Button 
             variant="outline" 
-            className="h-auto p-4 flex flex-col items-center gap-2"
-            onClick={() => router.push('/admin/tools')}
+            className="h-auto p-2 sm:p-4 flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base"
+            onClick={() => {
+              ActivityLogger.logToolSubmission('New Tool', 'Admin');
+              refreshActivities();
+              router.push('/admin/tools');
+            }}
           >
-            <Plus className="h-5 w-5" />
-            <span>Add Tool</span>
+            <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="text-center">Add Tool</span>
           </Button>
           <Button 
             variant="outline" 
-            className="h-auto p-4 flex flex-col items-center gap-2"
-            onClick={() => router.push('/admin/users')}
+            className="h-auto p-2 sm:p-4 flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base"
+            onClick={() => {
+              ActivityLogger.logCustomActivity(
+                'user_verified',
+                'Admin User Management',
+                'Admin accessed user management section',
+                'pending',
+                'Admin'
+              );
+              refreshActivities();
+              router.push('/admin/users');
+            }}
           >
-            <Shield className="h-5 w-5" />
-            <span>Manage Users</span>
+            <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="text-center">Manage Users</span>
           </Button>
         </div>
 
         {/* Recent Activity and Trust Leaderboard */}
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="pending-applications">Pending Applications</TabsTrigger>
-            <TabsTrigger value="vendor-applications">Vendor Applications</TabsTrigger>
-            <TabsTrigger value="content">Content Management</TabsTrigger>
-            <TabsTrigger value="testing">Testing</TabsTrigger>
-            <TabsTrigger value="moderation">Moderation</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto">
+            <TabsList className="w-full">
+              <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+              <TabsTrigger value="pending-applications" className="text-xs sm:text-sm">Pending Apps</TabsTrigger>
+              <TabsTrigger value="vendor-applications" className="text-xs sm:text-sm">Vendor Apps</TabsTrigger>
+              <TabsTrigger value="content" className="text-xs sm:text-sm">Content</TabsTrigger>
+              <TabsTrigger value="testing" className="text-xs sm:text-sm">Testing</TabsTrigger>
+              <TabsTrigger value="moderation" className="text-xs sm:text-sm">Moderation</TabsTrigger>
+              <TabsTrigger value="analytics" className="text-xs sm:text-sm">Analytics</TabsTrigger>
+            </TabsList>
+          </div>
           <TabsContent value="overview">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 sm:gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                  <CardDescription>Latest platform activities</CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Recent Activity</CardTitle>
+                      <CardDescription>Latest platform activities</CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={refreshActivities}
+                        disabled={activityLoading}
+                      >
+                        <RefreshCw className="w-4 h-4 mr-1" />
+                        Refresh
+                      </Button>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {recentActivity.length > 0 ? (
-                      recentActivity.map((activity) => (
+                  <div className="space-y-3 sm:space-y-4">
+                    {activityLoading ? (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                        <p className="text-muted-foreground mt-2">Loading activities...</p>
+                      </div>
+                    ) : activities.length > 0 ? (
+                      activities.slice(0, 5).map((activity) => (
                         <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg border">
                           <div className="flex-shrink-0 mt-1">
                             {getActivityIcon(activity.type)}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium">{activity.title}</p>
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                              <p className="text-sm font-medium truncate">{activity.title}</p>
                               {getStatusBadge(activity.status)}
                             </div>
-                            <p className="text-sm text-muted-foreground">{activity.description}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {new Date(activity.timestamp).toLocaleString()}
-                            </p>
+                            <p className="text-sm text-muted-foreground break-words">{activity.description}</p>
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mt-1">
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(activity.timestamp).toLocaleString()}
+                              </p>
+                              {activity.userName && (
+                                <p className="text-xs text-muted-foreground">
+                                  by {activity.userName}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))
                     ) : (
                       <div className="text-center py-8">
-                        <p className="text-muted-foreground">No recent activity</p>
+                        <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-medium mb-2">No Recent Activity</h3>
+                        <p className="text-muted-foreground">
+                          Activities will appear here as users interact with the platform.
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Try approving applications, creating tasks, or managing tools to see activities.
+                        </p>
                       </div>
                     )}
                   </div>
@@ -624,11 +831,21 @@ export default function AdminDashboard() {
                   <CardDescription>Common admin tasks</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     <Button 
                       variant="outline" 
                       className="w-full justify-start"
-                      onClick={() => router.push('/admin/tools')}
+                      onClick={() => {
+                        ActivityLogger.logCustomActivity(
+                          'tool_submitted',
+                          'Admin Tool Review',
+                          'Admin accessed tool review section',
+                          'pending',
+                          'Admin'
+                        );
+                        refreshActivities();
+                        router.push('/admin/tools');
+                      }}
                     >
                       <Edit className="w-4 h-4 mr-2" />
                       Review Pending Tools
@@ -636,7 +853,17 @@ export default function AdminDashboard() {
                     <Button 
                       variant="outline" 
                       className="w-full justify-start"
-                      onClick={() => router.push('/admin/users')}
+                      onClick={() => {
+                        ActivityLogger.logCustomActivity(
+                          'user_verified',
+                          'Admin User Management',
+                          'Admin accessed user verification section',
+                          'pending',
+                          'Admin'
+                        );
+                        refreshActivities();
+                        router.push('/admin/users');
+                      }}
                     >
                       <Award className="w-4 h-4 mr-2" />
                       Verify Tester Applications
@@ -683,7 +910,7 @@ export default function AdminDashboard() {
           </TabsContent>
           
           <TabsContent value="pending-applications">
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold">Pending Applications</h2>
@@ -697,18 +924,18 @@ export default function AdminDashboard() {
               </div>
 
               {pendingApplications.length > 0 ? (
-                <div className="grid gap-4">
+                <div className="grid gap-3 sm:gap-4">
                   {pendingApplications.map((application) => (
                     <Card key={application.id}>
                       <CardHeader>
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                           <div>
                             <CardTitle className="text-lg">{application.userName}</CardTitle>
-                            <CardDescription>{application.userEmail}</CardDescription>
+                            <CardDescription className="break-all">{application.userEmail}</CardDescription>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">{application.company}</Badge>
-                            <Badge variant="secondary">{application.jobTitle}</Badge>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="outline" className="text-xs">{application.company}</Badge>
+                            <Badge variant="secondary" className="text-xs">{application.jobTitle}</Badge>
                           </div>
                         </div>
                       </CardHeader>
@@ -737,11 +964,11 @@ export default function AdminDashboard() {
                             <span>Applied: {new Date(application.createdAt).toLocaleDateString()}</span>
                           </div>
                           
-                          <div className="flex gap-2 pt-2">
+                          <div className="flex flex-col sm:flex-row gap-2 pt-2">
                             <Button 
                               size="sm" 
                               onClick={() => handleApproveApplication(application.userId)}
-                              className="flex-1"
+                              className="w-full sm:flex-1"
                             >
                               <CheckCircle className="w-4 h-4 mr-2" />
                               Approve
@@ -750,7 +977,7 @@ export default function AdminDashboard() {
                               size="sm" 
                               variant="outline"
                               onClick={() => handleRejectApplication(application.userId)}
-                              className="flex-1"
+                              className="w-full sm:flex-1"
                             >
                               <XCircle className="w-4 h-4 mr-2" />
                               Reject
@@ -776,7 +1003,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="vendor-applications">
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold">Vendor Applications</h2>
@@ -790,18 +1017,18 @@ export default function AdminDashboard() {
               </div>
 
               {vendorApplications.length > 0 ? (
-                <div className="grid gap-4">
+                <div className="grid gap-3 sm:gap-4">
                   {vendorApplications.map((application) => (
                     <Card key={application.id}>
                       <CardHeader>
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                           <div>
                             <CardTitle className="text-lg">{application.userName}</CardTitle>
-                            <CardDescription>{application.userEmail}</CardDescription>
+                            <CardDescription className="break-all">{application.userEmail}</CardDescription>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">{application.companyName}</Badge>
-                            <Badge variant="secondary">{application.industry}</Badge>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="outline" className="text-xs">{application.companyName}</Badge>
+                            <Badge variant="secondary" className="text-xs">{application.industry}</Badge>
                           </div>
                         </div>
                       </CardHeader>
@@ -849,11 +1076,11 @@ export default function AdminDashboard() {
                             <span>Applied: {new Date(application.createdAt).toLocaleDateString()}</span>
                           </div>
                           
-                          <div className="flex gap-2 pt-2">
+                          <div className="flex flex-col sm:flex-row gap-2 pt-2">
                             <Button 
                               size="sm" 
                               onClick={() => handleApproveVendorApplication(application.userId)}
-                              className="flex-1"
+                              className="w-full sm:flex-1"
                             >
                               <CheckCircle className="w-4 h-4 mr-2" />
                               Approve
@@ -862,7 +1089,7 @@ export default function AdminDashboard() {
                               size="sm" 
                               variant="outline"
                               onClick={() => handleRejectVendorApplication(application.userId)}
-                              className="flex-1"
+                              className="w-full sm:flex-1"
                             >
                               <XCircle className="w-4 h-4 mr-2" />
                               Reject
@@ -892,11 +1119,11 @@ export default function AdminDashboard() {
             {/* Add content management features here */}
           </TabsContent>
           <TabsContent value="testing">
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Testing Overview Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <Card>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3 sm:p-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Total Tasks</p>
@@ -910,7 +1137,7 @@ export default function AdminDashboard() {
                 </Card>
 
                 <Card>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3 sm:p-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Pending Tasks</p>
@@ -924,7 +1151,7 @@ export default function AdminDashboard() {
                 </Card>
 
                 <Card>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3 sm:p-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">In Progress</p>
@@ -938,7 +1165,7 @@ export default function AdminDashboard() {
                 </Card>
 
                 <Card>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3 sm:p-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Completed</p>
@@ -970,9 +1197,9 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   {recentTasks.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {recentTasks.slice(0, 5).map((task) => (
-                        <div key={task.id} className="flex items-center justify-between p-3 rounded-lg border">
+                        <div key={task.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border">
                           <div className="flex items-center gap-3">
                             <div className="flex-shrink-0">
                               {task.tool.logoUrl && (
@@ -981,18 +1208,18 @@ export default function AdminDashboard() {
                                   alt={task.tool.name}
                                   width={32}
                                   height={32}
-                                  className="rounded"
+                                  className="rounded w-8 h-8 sm:w-10 sm:h-10"
                                 />
                               )}
                             </div>
-                            <div>
-                              <p className="font-medium">{task.title}</p>
-                              <p className="text-sm text-muted-foreground">
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium truncate">{task.title}</p>
+                              <p className="text-sm text-muted-foreground truncate">
                                 {task.tool.name} • {task.tester.name}
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                             {getTaskStatusBadge(task.status)}
                             <span className="text-sm text-muted-foreground">
                               {new Date(task.deadline).toLocaleDateString()}
@@ -1014,32 +1241,6 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Quick Actions */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button 
-                  className="h-auto p-4 flex flex-col items-center gap-2"
-                  onClick={() => router.push('/admin/create-task')}
-                >
-                  <TestTube className="h-5 w-5" />
-                  <span>Create New Task</span>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="h-auto p-4 flex flex-col items-center gap-2"
-                  onClick={() => router.push('/admin/tasks')}
-                >
-                  <Eye className="h-5 w-5" />
-                  <span>Manage Tasks</span>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="h-auto p-4 flex flex-col items-center gap-2"
-                  onClick={() => router.push('/admin/approve-reports')}
-                >
-                  <FileCheck className="h-5 w-5" />
-                  <span>Review Reports</span>
-                </Button>
-              </div>
             </div>
           </TabsContent>
           <TabsContent value="moderation">

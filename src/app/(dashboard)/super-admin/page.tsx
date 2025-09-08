@@ -23,6 +23,28 @@ import {
   Globe
 } from 'lucide-react';
 
+// Import super admin components
+import { SystemSettings } from '@/components/super-admin/system-settings';
+import { DatabaseManagement } from '@/components/super-admin/database-management';
+import { ApiManagement } from '@/components/super-admin/api-management';
+import { SystemMonitoring } from '@/components/super-admin/system-monitoring';
+import { SecuritySettings } from '@/components/super-admin/security-settings';
+import { Performance } from '@/components/super-admin/performance';
+import ManageUsers from '@/components/super-admin/manage-users';
+import RoleManagement from '@/components/super-admin/role-management';
+import Verifications from '@/components/super-admin/verifications';
+import Permissions from '@/components/super-admin/permissions';
+import VendorManagement from '@/components/super-admin/vendor-management';
+import TesterManagement from '@/components/super-admin/tester-management';
+
+// Import analytics components
+import { UserAnalytics } from '@/components/super-admin/user-analytics';
+import { ToolAnalytics } from '@/components/super-admin/tool-analytics';
+import { GrowthMetrics } from '@/components/super-admin/growth-metrics';
+import { PerformanceAnalytics } from '@/components/super-admin/performance-analytics';
+import { EngagementMetrics } from '@/components/super-admin/engagement-metrics';
+import { RevenueAnalytics } from '@/components/super-admin/revenue-analytics';
+
 interface DashboardStats {
   totalUsers: number;
   totalTools: number;
@@ -50,6 +72,21 @@ export default function SuperAdminDashboard() {
     databaseSize: '0 MB'
   });
   const [loading, setLoading] = useState(true);
+  const [activeSystemTab, setActiveSystemTab] = useState<string>('overview');
+  const [activeUserTab, setActiveUserTab] = useState<string>('overview');
+  const [activeAnalyticsTab, setActiveAnalyticsTab] = useState<string>('overview');
+
+  const handleSystemTabClick = (tab: string) => {
+    setActiveSystemTab(tab);
+  };
+
+  const handleUserTabClick = (tab: string) => {
+    setActiveUserTab(tab);
+  };
+
+  const handleAnalyticsTabClick = (tab: string) => {
+    setActiveAnalyticsTab(tab);
+  };
 
   useEffect(() => {
     fetchDashboardStats();
@@ -295,120 +332,266 @@ export default function SuperAdminDashboard() {
             </TabsContent>
 
             <TabsContent value="users" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>User Management</CardTitle>
-                  <CardDescription>
-                    Manage all users, roles, and permissions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <Users className="h-6 w-6" />
-                      <span>Manage Users</span>
+              {activeUserTab === 'overview' ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>User Management</CardTitle>
+                    <CardDescription>
+                      Manage all users, roles, and permissions
+                    </CardDescription>
+                    <div className="text-xs text-muted-foreground">
+                      Click any button below to access user management features
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      <button 
+                        className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-border rounded-lg cursor-pointer hover:bg-accent hover:border-primary transition-all duration-200 bg-card text-card-foreground"
+                        onClick={() => handleUserTabClick('manage-users')}
+                      >
+                        <Users className="h-6 w-6 text-primary" />
+                        <span className="text-sm font-medium text-foreground">Manage Users</span>
+                      </button>
+                      <button 
+                        className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-border rounded-lg cursor-pointer hover:bg-accent hover:border-primary transition-all duration-200 bg-card text-card-foreground"
+                        onClick={() => handleUserTabClick('role-management')}
+                      >
+                        <Shield className="h-6 w-6 text-primary" />
+                        <span className="text-sm font-medium text-foreground">Role Management</span>
+                      </button>
+                      <button 
+                        className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-border rounded-lg cursor-pointer hover:bg-accent hover:border-primary transition-all duration-200 bg-card text-card-foreground"
+                        onClick={() => handleUserTabClick('verifications')}
+                      >
+                        <CheckCircle className="h-6 w-6 text-primary" />
+                        <span className="text-sm font-medium text-foreground">Verifications</span>
+                      </button>
+                      <button 
+                        className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-border rounded-lg cursor-pointer hover:bg-accent hover:border-primary transition-all duration-200 bg-card text-card-foreground"
+                        onClick={() => handleUserTabClick('permissions')}
+                      >
+                        <Key className="h-6 w-6 text-primary" />
+                        <span className="text-sm font-medium text-foreground">Permissions</span>
+                      </button>
+                      <button 
+                        className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-border rounded-lg cursor-pointer hover:bg-accent hover:border-primary transition-all duration-200 bg-card text-card-foreground"
+                        onClick={() => handleUserTabClick('vendor-management')}
+                      >
+                        <Building className="h-6 w-6 text-primary" />
+                        <span className="text-sm font-medium text-foreground">Vendor Management</span>
+                      </button>
+                      <button 
+                        className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-border rounded-lg cursor-pointer hover:bg-accent hover:border-primary transition-all duration-200 bg-card text-card-foreground"
+                        onClick={() => handleUserTabClick('tester-management')}
+                      >
+                        <Star className="h-6 w-6 text-primary" />
+                        <span className="text-sm font-medium text-foreground">Tester Management</span>
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Button onClick={() => handleUserTabClick('overview')}>
+                      ← Back to User Management
                     </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <Shield className="h-6 w-6" />
-                      <span>Role Management</span>
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <CheckCircle className="h-6 w-6" />
-                      <span>Verifications</span>
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <Key className="h-6 w-6" />
-                      <span>Permissions</span>
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <Building className="h-6 w-6" />
-                      <span>Vendor Management</span>
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <Star className="h-6 w-6" />
-                      <span>Tester Management</span>
-                    </Button>
+                    <h2 className="text-xl font-semibold">
+                      {activeUserTab === 'manage-users' && 'Manage Users'}
+                      {activeUserTab === 'role-management' && 'Role Management'}
+                      {activeUserTab === 'verifications' && 'Verifications'}
+                      {activeUserTab === 'permissions' && 'Permissions'}
+                      {activeUserTab === 'vendor-management' && 'Vendor Management'}
+                      {activeUserTab === 'tester-management' && 'Tester Management'}
+                    </h2>
                   </div>
-                </CardContent>
-              </Card>
+                  {activeUserTab === 'manage-users' && <ManageUsers />}
+                  {activeUserTab === 'role-management' && <RoleManagement />}
+                  {activeUserTab === 'verifications' && <Verifications />}
+                  {activeUserTab === 'permissions' && <Permissions />}
+                  {activeUserTab === 'vendor-management' && <VendorManagement />}
+                  {activeUserTab === 'tester-management' && <TesterManagement />}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="system" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>System Control</CardTitle>
-                  <CardDescription>
-                    Full system administration and configuration
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <Settings className="h-6 w-6" />
-                      <span>System Settings</span>
+              {activeSystemTab === 'overview' ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>System Control</CardTitle>
+                    <CardDescription>
+                      Full system administration and configuration
+                    </CardDescription>
+                    <div className="text-xs text-muted-foreground">
+                      Click any button below to access system features
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      <button 
+                        className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-border rounded-lg cursor-pointer hover:bg-accent hover:border-primary transition-all duration-200 bg-card text-card-foreground"
+                        onClick={() => handleSystemTabClick('settings')}
+                      >
+                        <Settings className="h-6 w-6 text-primary" />
+                        <span className="text-sm font-medium text-foreground">System Settings</span>
+                      </button>
+                      <button 
+                        className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-border rounded-lg cursor-pointer hover:bg-accent hover:border-primary transition-all duration-200 bg-card text-card-foreground"
+                        onClick={() => handleSystemTabClick('database')}
+                      >
+                        <Database className="h-6 w-6 text-primary" />
+                        <span className="text-sm font-medium text-foreground">Database Management</span>
+                      </button>
+                      <button 
+                        className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-border rounded-lg cursor-pointer hover:bg-accent hover:border-primary transition-all duration-200 bg-card text-card-foreground"
+                        onClick={() => handleSystemTabClick('api')}
+                      >
+                        <Globe className="h-6 w-6 text-primary" />
+                        <span className="text-sm font-medium text-foreground">API Management</span>
+                      </button>
+                      <button 
+                        className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-border rounded-lg cursor-pointer hover:bg-accent hover:border-primary transition-all duration-200 bg-card text-card-foreground"
+                        onClick={() => handleSystemTabClick('monitoring')}
+                      >
+                        <Activity className="h-6 w-6 text-primary" />
+                        <span className="text-sm font-medium text-foreground">System Monitoring</span>
+                      </button>
+                      <button 
+                        className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-border rounded-lg cursor-pointer hover:bg-accent hover:border-primary transition-all duration-200 bg-card text-card-foreground"
+                        onClick={() => handleSystemTabClick('security')}
+                      >
+                        <Shield className="h-6 w-6 text-primary" />
+                        <span className="text-sm font-medium text-foreground">Security Settings</span>
+                      </button>
+                      <button 
+                        className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-border rounded-lg cursor-pointer hover:bg-accent hover:border-primary transition-all duration-200 bg-card text-card-foreground"
+                        onClick={() => handleSystemTabClick('performance')}
+                      >
+                        <TrendingUp className="h-6 w-6 text-primary" />
+                        <span className="text-sm font-medium text-foreground">Performance</span>
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setActiveSystemTab('overview')}
+                    >
+                      ← Back to System Control
                     </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <Database className="h-6 w-6" />
-                      <span>Database Management</span>
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <Globe className="h-6 w-6" />
-                      <span>API Management</span>
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <Activity className="h-6 w-6" />
-                      <span>System Monitoring</span>
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <Shield className="h-6 w-6" />
-                      <span>Security Settings</span>
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <TrendingUp className="h-6 w-6" />
-                      <span>Performance</span>
-                    </Button>
+                    <h2 className="text-xl font-semibold">
+                      {activeSystemTab === 'settings' && 'System Settings'}
+                      {activeSystemTab === 'database' && 'Database Management'}
+                      {activeSystemTab === 'api' && 'API Management'}
+                      {activeSystemTab === 'monitoring' && 'System Monitoring'}
+                      {activeSystemTab === 'security' && 'Security Settings'}
+                      {activeSystemTab === 'performance' && 'Performance Monitoring'}
+                    </h2>
                   </div>
-                </CardContent>
-              </Card>
+                  
+                  {activeSystemTab === 'settings' && <SystemSettings />}
+                  {activeSystemTab === 'database' && <DatabaseManagement />}
+                  {activeSystemTab === 'api' && <ApiManagement />}
+                  {activeSystemTab === 'monitoring' && <SystemMonitoring />}
+                  {activeSystemTab === 'security' && <SecuritySettings />}
+                  {activeSystemTab === 'performance' && <Performance />}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="analytics" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Platform Analytics</CardTitle>
-                  <CardDescription>
-                    Comprehensive analytics and insights
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <BarChart3 className="h-6 w-6" />
-                      <span>User Analytics</span>
+              {activeAnalyticsTab === 'overview' ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Platform Analytics</CardTitle>
+                    <CardDescription>
+                      Comprehensive analytics and insights
+                    </CardDescription>
+                    <div className="text-xs text-muted-foreground">
+                      Click any button below to access analytics features
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      <button
+                        onClick={() => handleAnalyticsTabClick('user-analytics')}
+                        className="h-20 flex flex-col items-center justify-center gap-2 p-4 border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                      >
+                        <BarChart3 className="h-6 w-6" />
+                        <span className="text-sm font-medium">User Analytics</span>
+                      </button>
+                      <button
+                        onClick={() => handleAnalyticsTabClick('tool-analytics')}
+                        className="h-20 flex flex-col items-center justify-center gap-2 p-4 border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                      >
+                        <Star className="h-6 w-6" />
+                        <span className="text-sm font-medium">Tool Analytics</span>
+                      </button>
+                      <button
+                        onClick={() => handleAnalyticsTabClick('growth-metrics')}
+                        className="h-20 flex flex-col items-center justify-center gap-2 p-4 border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                      >
+                        <TrendingUp className="h-6 w-6" />
+                        <span className="text-sm font-medium">Growth Metrics</span>
+                      </button>
+                      <button
+                        onClick={() => handleAnalyticsTabClick('performance-analytics')}
+                        className="h-20 flex flex-col items-center justify-center gap-2 p-4 border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                      >
+                        <Activity className="h-6 w-6" />
+                        <span className="text-sm font-medium">Performance Analytics</span>
+                      </button>
+                      <button
+                        onClick={() => handleAnalyticsTabClick('engagement-metrics')}
+                        className="h-20 flex flex-col items-center justify-center gap-2 p-4 border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                      >
+                        <Users className="h-6 w-6" />
+                        <span className="text-sm font-medium">Engagement Metrics</span>
+                      </button>
+                      <button
+                        onClick={() => handleAnalyticsTabClick('revenue-analytics')}
+                        className="h-20 flex flex-col items-center justify-center gap-2 p-4 border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                      >
+                        <Building className="h-6 w-6" />
+                        <span className="text-sm font-medium">Revenue Analytics</span>
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAnalyticsTabClick('overview')}
+                    >
+                      ← Back to Analytics
                     </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <Star className="h-6 w-6" />
-                      <span>Tool Analytics</span>
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <TrendingUp className="h-6 w-6" />
-                      <span>Growth Metrics</span>
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <Activity className="h-6 w-6" />
-                      <span>Performance Analytics</span>
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <Users className="h-6 w-6" />
-                      <span>Engagement Metrics</span>
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col gap-2">
-                      <Building className="h-6 w-6" />
-                      <span>Revenue Analytics</span>
-                    </Button>
+                    <div>
+                      <h2 className="text-lg font-semibold">
+                        {activeAnalyticsTab === 'user-analytics' && 'User Analytics'}
+                        {activeAnalyticsTab === 'tool-analytics' && 'Tool Analytics'}
+                        {activeAnalyticsTab === 'growth-metrics' && 'Growth Metrics'}
+                        {activeAnalyticsTab === 'performance-analytics' && 'Performance Analytics'}
+                        {activeAnalyticsTab === 'engagement-metrics' && 'Engagement Metrics'}
+                        {activeAnalyticsTab === 'revenue-analytics' && 'Revenue Analytics'}
+                      </h2>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                  
+                  {activeAnalyticsTab === 'user-analytics' && <UserAnalytics />}
+                  {activeAnalyticsTab === 'tool-analytics' && <ToolAnalytics />}
+                  {activeAnalyticsTab === 'growth-metrics' && <GrowthMetrics />}
+                  {activeAnalyticsTab === 'performance-analytics' && <PerformanceAnalytics />}
+                  {activeAnalyticsTab === 'engagement-metrics' && <EngagementMetrics />}
+                  {activeAnalyticsTab === 'revenue-analytics' && <RevenueAnalytics />}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>

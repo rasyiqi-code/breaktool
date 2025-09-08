@@ -22,7 +22,7 @@ export async function PATCH(
       .from('tools')
       .update({
         verdict: verdict,
-        updated_at: new Date().toISOString()
+        updatedAt: new Date().toISOString()
       })
       .eq('id', id)
       .select()

@@ -11,13 +11,13 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const { verification_status, review_notes } = await request.json();
+    const { verificationStatus, review_notes } = await request.json();
     
     // Get current admin user for verifiedBy field
     const adminUser = await stackServerApp.getUser();
     const adminId = adminUser?.id || 'admin';
 
-    if (!verification_status || !['pending', 'approved', 'rejected'].includes(verification_status)) {
+    if (!verificationStatus || !['pending', 'approved', 'rejected'].includes(verificationStatus)) {
       return NextResponse.json(
         { error: 'Invalid verification status value' },
         { status: 400 }
@@ -36,12 +36,12 @@ export async function PATCH(
       activeRole?: string;
       roleSwitchedAt?: Date | null;
     } = {
-      verificationStatus: verification_status,
+      verificationStatus: verificationStatus,
       updatedAt: new Date()
     };
 
-    // If status is approved, set verification date, verifiedBy, is_verified_tester, and role
-    if (verification_status === 'approved') {
+    // If status is approved, set verification date, verifiedBy, isVerifiedTester, and role
+    if (verificationStatus === 'approved') {
       updateUserData.verifiedAt = new Date();
       updateUserData.verifiedBy = adminId;
       updateUserData.isVerifiedTester = true;
@@ -51,7 +51,7 @@ export async function PATCH(
       updateUserData.primaryRole = 'verified_tester';
       updateUserData.activeRole = 'verified_tester';
       updateUserData.roleSwitchedAt = new Date();
-    } else if (verification_status === 'rejected') {
+    } else if (verificationStatus === 'rejected') {
       updateUserData.verifiedAt = null;
       updateUserData.verifiedBy = null;
       updateUserData.isVerifiedTester = false;
@@ -70,7 +70,7 @@ export async function PATCH(
     });
 
     // Handle multi-role system updates
-    if (verification_status === 'approved') {
+    if (verificationStatus === 'approved') {
       // Create UserRole entry for verified_tester
       await prisma.userRole.upsert({
         where: {
@@ -92,7 +92,7 @@ export async function PATCH(
           grantedBy: adminId
         }
       });
-    } else if (verification_status === 'rejected') {
+    } else if (verificationStatus === 'rejected') {
       // Deactivate verified_tester role
       await prisma.userRole.updateMany({
         where: {
@@ -113,11 +113,11 @@ export async function PATCH(
       reviewedAt?: Date;
       reviewNotes?: string | null;
     } = {
-      status: verification_status,
+      status: verificationStatus,
       updatedAt: new Date()
     };
 
-    if (verification_status === 'approved' || verification_status === 'rejected') {
+    if (verificationStatus === 'approved' || verificationStatus === 'rejected') {
       updateVerificationData.reviewedBy = adminId;
       updateVerificationData.reviewedAt = new Date();
       updateVerificationData.reviewNotes = review_notes || null;
@@ -133,7 +133,7 @@ export async function PATCH(
     });
 
     // Auto-assign badges based on new status
-    await BadgeService.assignVerificationBadges(id, verification_status);
+    await BadgeService.assignVerificationBadges(id, verificationStatus);
 
     return NextResponse.json({
       user: updatedUser,
