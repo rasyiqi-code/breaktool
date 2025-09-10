@@ -305,9 +305,22 @@ export default function AdminToolsPage() {
         // Refresh tools list
         await fetchPendingTools();
       } else {
-        const error = await response.json();
-        console.error('Sync error details:', error);
-        throw new Error(error.error || 'Failed to sync Product Hunt data');
+        let errorMessage = 'Failed to sync Product Hunt data';
+        try {
+          const errorData = await response.json();
+          console.error('Sync error details:', errorData);
+          errorMessage = errorData.error || errorData.details || errorMessage;
+        } catch (parseError) {
+          // If response is not JSON, try to get text
+          try {
+            const errorText = await response.text();
+            console.error('Sync error text:', errorText);
+            errorMessage = errorText || errorMessage;
+          } catch (textError) {
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+          }
+        }
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Error syncing Product Hunt:', error);

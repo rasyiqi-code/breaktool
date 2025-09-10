@@ -218,7 +218,7 @@ export default function TesterDashboard() {
 
   return (
 
-    <RequireRole requiredRole="verified_tester" redirectTo="/dashboard">
+    <RequireRole requiredRoles={['verified_tester', 'admin', 'super_admin']} redirectTo="/dashboard">
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}

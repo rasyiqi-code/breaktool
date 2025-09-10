@@ -61,6 +61,7 @@ export async function RelatedTools({
                           src={tool.logo_url}
                           alt={`${tool.name} logo`}
                           fill
+                          sizes="40px"
                           className="object-cover"
                         />
                       </div>
@@ -143,6 +144,7 @@ export function RelatedToolsClient({ tools, title = "Related Tools" }: RelatedTo
                         src={tool.logo_url}
                         alt={`${tool.name} logo`}
                         fill
+                        sizes="40px"
                         className="object-cover"
                       />
                     </div>

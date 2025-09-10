@@ -6,15 +6,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
   Search, 
   Filter, 
-  MoreHorizontal, 
   UserPlus, 
   Shield, 
   CheckCircle,
   XCircle,
   Clock,
-  Loader2
+  Loader2,
+  Building
 } from 'lucide-react';
 
 interface User {
@@ -43,6 +54,7 @@ interface UserStats {
   activeUsers: number;
   pendingUsers: number;
   suspendedUsers: number;
+  vendorApproved: number;
 }
 
 export default function ManageUsers() {
@@ -53,10 +65,23 @@ export default function ManageUsers() {
     totalUsers: 0,
     activeUsers: 0,
     pendingUsers: 0,
-    suspendedUsers: 0
+    suspendedUsers: 0,
+    vendorApproved: 0
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Add User Modal State
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [isAddingUser, setIsAddingUser] = useState(false);
+  const [newUserData, setNewUserData] = useState({
+    name: '',
+    email: '',
+    role: 'user',
+    company: '',
+    location: '',
+    bio: ''
+  });
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -84,6 +109,59 @@ export default function ManageUsers() {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  const handleAddUser = async () => {
+    if (!newUserData.name || !newUserData.email) {
+      setError('Name and email are required');
+      return;
+    }
+
+    setIsAddingUser(true);
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newUserData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add user');
+      }
+
+      // Reset form and close modal
+      setNewUserData({
+        name: '',
+        email: '',
+        role: 'user',
+        company: '',
+        location: '',
+        bio: ''
+      });
+      setIsAddUserModalOpen(false);
+      
+      // Refresh users list
+      await fetchUsers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add user');
+    } finally {
+      setIsAddingUser(false);
+    }
+  };
+
+  const resetAddUserForm = () => {
+    setNewUserData({
+      name: '',
+      email: '',
+      role: 'user',
+      company: '',
+      location: '',
+      bio: ''
+    });
+    setError(null);
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -148,10 +226,132 @@ export default function ManageUsers() {
             View and manage all platform users
           </p>
         </div>
-        <Button>
-          <UserPlus className="h-4 w-4 mr-2" />
-          Add User
-        </Button>
+        <Dialog open={isAddUserModalOpen} onOpenChange={setIsAddUserModalOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={resetAddUserForm}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Add User
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add New User</DialogTitle>
+              <DialogDescription>
+                Create a new user account. Fill in the required information below.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Name *
+                </Label>
+                <Input
+                  id="name"
+                  value={newUserData.name}
+                  onChange={(e) => setNewUserData(prev => ({ ...prev, name: e.target.value }))}
+                  className="col-span-3"
+                  placeholder="Enter full name"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">
+                  Email *
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={newUserData.email}
+                  onChange={(e) => setNewUserData(prev => ({ ...prev, email: e.target.value }))}
+                  className="col-span-3"
+                  placeholder="Enter email address"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="role" className="text-right">
+                  Role
+                </Label>
+                <Select value={newUserData.role} onValueChange={(value) => setNewUserData(prev => ({ ...prev, role: value }))}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="verified_tester">Verified Tester</SelectItem>
+                    <SelectItem value="vendor">Vendor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="company" className="text-right">
+                  Company
+                </Label>
+                <Input
+                  id="company"
+                  value={newUserData.company}
+                  onChange={(e) => setNewUserData(prev => ({ ...prev, company: e.target.value }))}
+                  className="col-span-3"
+                  placeholder="Enter company name"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="location" className="text-right">
+                  Location
+                </Label>
+                <Input
+                  id="location"
+                  value={newUserData.location}
+                  onChange={(e) => setNewUserData(prev => ({ ...prev, location: e.target.value }))}
+                  className="col-span-3"
+                  placeholder="Enter location"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="bio" className="text-right">
+                  Bio
+                </Label>
+                <Input
+                  id="bio"
+                  value={newUserData.bio}
+                  onChange={(e) => setNewUserData(prev => ({ ...prev, bio: e.target.value }))}
+                  className="col-span-3"
+                  placeholder="Enter bio"
+                />
+              </div>
+            </div>
+            {error && (
+              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+                {error}
+              </div>
+            )}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsAddUserModalOpen(false)}
+                disabled={isAddingUser}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={handleAddUser}
+                disabled={isAddingUser || !newUserData.name || !newUserData.email}
+              >
+                {isAddingUser ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Add User
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Filters and Search */}
@@ -187,7 +387,8 @@ export default function ManageUsers() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-                <p className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{stats.totalUsers?.toLocaleString() || '0'}</p>
+                <p className="text-xs text-muted-foreground">All registered users</p>
               </div>
               <Shield className="h-8 w-8 text-blue-500" />
             </div>
@@ -197,8 +398,9 @@ export default function ManageUsers() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Users</p>
-                <p className="text-2xl font-bold">{stats.activeUsers.toLocaleString()}</p>
+                <p className="text-sm font-medium text-muted-foreground">Verified Testers</p>
+                <p className="text-2xl font-bold">{stats.activeUsers?.toLocaleString() || '0'}</p>
+                <p className="text-xs text-muted-foreground">Approved testers</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
@@ -208,8 +410,9 @@ export default function ManageUsers() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Pending</p>
-                <p className="text-2xl font-bold">{stats.pendingUsers.toLocaleString()}</p>
+                <p className="text-sm font-medium text-muted-foreground">Tester Applications</p>
+                <p className="text-2xl font-bold">{stats.pendingUsers?.toLocaleString() || '0'}</p>
+                <p className="text-xs text-muted-foreground">Pending verification</p>
               </div>
               <Clock className="h-8 w-8 text-yellow-500" />
             </div>
@@ -219,10 +422,11 @@ export default function ManageUsers() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Suspended</p>
-                <p className="text-2xl font-bold">{stats.suspendedUsers.toLocaleString()}</p>
+                <p className="text-sm font-medium text-muted-foreground">Approved Vendors</p>
+                <p className="text-2xl font-bold">{stats.vendorApproved?.toLocaleString() || '0'}</p>
+                <p className="text-xs text-muted-foreground">Vendor accounts</p>
               </div>
-              <XCircle className="h-8 w-8 text-red-500" />
+              <Building className="h-8 w-8 text-purple-500" />
             </div>
           </CardContent>
         </Card>
@@ -271,9 +475,6 @@ export default function ManageUsers() {
                     <p>Last active: {user.lastActive}</p>
                     <p>Reviews: {user.totalReviews} | Tools: {user.toolsCount}</p>
                   </div>
-                  <Button variant="ghost" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
             ))}

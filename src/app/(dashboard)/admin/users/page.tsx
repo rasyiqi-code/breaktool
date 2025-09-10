@@ -25,6 +25,23 @@ import {
   Building
 } from "lucide-react";
 
+interface VendorApplication {
+  id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  company_name: string;
+  created_at: string;
+  review_notes: string | null;
+}
+
+interface VerificationRequest {
+  id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  expertise_areas: string[];
+  company: string | null;
+  created_at: string;
+  review_notes: string | null;
+}
+
 interface User {
   id: string;
   name: string;
@@ -44,6 +61,8 @@ interface User {
   created_at: string;
   verification_date: string | null;
   verification_proof: string | null;
+  vendor_application: VendorApplication | null;
+  verification_request: VerificationRequest | null;
 }
 
 export default function AdminUsersPage() {
@@ -69,7 +88,10 @@ function AdminUsersContent() {
       const response = await fetch('/api/admin/users');
       if (response.ok) {
         const data = await response.json();
-        setUsers(data);
+        // API now returns { users: [...], statistics: {...} }
+        setUsers(data.users || []);
+      } else {
+        console.error('API Error:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -328,6 +350,100 @@ function AdminUsersContent() {
     );
   };
 
+  const getVendorApplicationBadge = (vendorApplication: VendorApplication | null) => {
+    if (!vendorApplication) return null;
+    
+    const statusColors = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      approved: 'bg-green-100 text-green-800',
+      rejected: 'bg-red-100 text-red-800'
+    };
+    
+    return (
+      <Badge variant="outline" className={`text-xs ${statusColors[vendorApplication.status]}`}>
+        Vendor App: {vendorApplication.status}
+      </Badge>
+    );
+  };
+
+  const getVerificationRequestBadge = (verificationRequest: VerificationRequest | null) => {
+    if (!verificationRequest) return null;
+    
+    const statusColors = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      approved: 'bg-green-100 text-green-800',
+      rejected: 'bg-red-100 text-red-800'
+    };
+    
+    return (
+      <Badge variant="outline" className={`text-xs ${statusColors[verificationRequest.status]}`}>
+        Tester App: {verificationRequest.status}
+      </Badge>
+    );
+  };
+
+  const getRoleSwitchingInfo = (user: User) => {
+    // Check if user has both capabilities (can switch between roles)
+    const hasVendorCapability = user.vendor_status === 'approved' || user.role === 'vendor';
+    const hasTesterCapability = user.is_verified_tester || user.verification_status === 'approved';
+    const hasPendingVendorApp = user.vendor_application?.status === 'pending';
+    const hasPendingTesterApp = user.verification_request?.status === 'pending';
+    
+    // Show pending applications first
+    if (hasPendingVendorApp) {
+      return (
+        <Badge variant="outline" className="text-xs bg-orange-100 text-orange-800">
+          Vendor App Pending
+        </Badge>
+      );
+    }
+    
+    if (hasPendingTesterApp) {
+      return (
+        <Badge variant="outline" className="text-xs bg-orange-100 text-orange-800">
+          Tester App Pending
+        </Badge>
+      );
+    }
+    
+    // If user has both capabilities, show switch option to the OTHER role
+    if (hasVendorCapability && hasTesterCapability) {
+      // Show switch option to the role they're NOT currently in
+      if (user.role === 'verified_tester') {
+        return (
+          <Badge variant="outline" className="text-xs bg-purple-100 text-purple-800">
+            Can switch to Vendor
+          </Badge>
+        );
+      } else if (user.role === 'vendor') {
+        return (
+          <Badge variant="outline" className="text-xs bg-green-100 text-green-800">
+            Can switch to Verified Tester
+          </Badge>
+        );
+      }
+    }
+    
+    // Show "Can apply" options for users who don't have the capability yet
+    if (user.role === 'verified_tester' && !hasVendorCapability) {
+      return (
+        <Badge variant="outline" className="text-xs bg-blue-100 text-blue-800">
+          Can apply for Vendor
+        </Badge>
+      );
+    }
+    
+    if (user.role === 'vendor' && !hasTesterCapability) {
+      return (
+        <Badge variant="outline" className="text-xs bg-blue-100 text-blue-800">
+          Can apply for Verified Tester
+        </Badge>
+      );
+    }
+    
+    return null;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -356,7 +472,7 @@ function AdminUsersContent() {
             <div className="flex items-center gap-2 text-sm text-blue-700">
               <Shield className="h-4 w-4" />
               <span>
-                <strong>Note:</strong> Admin and Super Admin accounts are not displayed in this list as they are system administrators.
+                <strong>Note:</strong> Admin and Super Admin accounts are filtered out from this list. This page shows vendor applications, verification requests, and role switching opportunities.
               </span>
             </div>
           </div>
@@ -434,6 +550,9 @@ function AdminUsersContent() {
                           <h3 className="text-xl font-semibold">{user.name || 'Unknown User'}</h3>
                           {getRoleBadge(user.role)}
                           {getVerificationBadge(user)}
+                          {getVendorApplicationBadge(user.vendor_application)}
+                          {getVerificationRequestBadge(user.verification_request)}
+                          {getRoleSwitchingInfo(user)}
                         </div>
                         
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
@@ -492,6 +611,43 @@ function AdminUsersContent() {
                         )}
 
                         {getUserBadges(user.badges)}
+
+                        {/* Vendor Application Details */}
+                        {user.vendor_application && (
+                          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Building className="h-4 w-4 text-blue-600" />
+                              <span className="text-sm font-medium text-blue-800">Vendor Application</span>
+                            </div>
+                            <div className="text-sm text-blue-700">
+                              <p><strong>Company:</strong> {user.vendor_application.company_name}</p>
+                              <p><strong>Applied:</strong> {new Date(user.vendor_application.created_at).toLocaleDateString()}</p>
+                              {user.vendor_application.review_notes && (
+                                <p><strong>Review Notes:</strong> {user.vendor_application.review_notes}</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Verification Request Details */}
+                        {user.verification_request && (
+                          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Award className="h-4 w-4 text-green-600" />
+                              <span className="text-sm font-medium text-green-800">Tester Verification Request</span>
+                            </div>
+                            <div className="text-sm text-green-700">
+                              <p><strong>Company:</strong> {user.verification_request.company || 'Not specified'}</p>
+                              <p><strong>Applied:</strong> {new Date(user.verification_request.created_at).toLocaleDateString()}</p>
+                              {user.verification_request.expertise_areas.length > 0 && (
+                                <p><strong>Expertise:</strong> {user.verification_request.expertise_areas.join(', ')}</p>
+                              )}
+                              {user.verification_request.review_notes && (
+                                <p><strong>Review Notes:</strong> {user.verification_request.review_notes}</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 

@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Combobox } from '@/components/ui/combobox';
 import { FileText, Star, Info, Target, Plus, X } from 'lucide-react';
 
 interface FormData {
@@ -42,6 +43,7 @@ interface FormSectionsProps {
 }
 
 export function ToolSelectionSection({ formData, tools, loadingTools, onInputChange }: FormSectionsProps) {
+  
   return (
     <div className="space-y-3 sm:space-y-4">
       <div className="flex items-center gap-2 sm:gap-3 pb-2 sm:pb-3 border-b border-blue-200/50">
@@ -52,22 +54,18 @@ export function ToolSelectionSection({ formData, tools, loadingTools, onInputCha
       </div>
       <div className="space-y-2">
         <Label htmlFor="toolId" className="text-base font-medium">Select Tool to Test</Label>
-        <Select 
-          value={formData.toolId} 
+        <Combobox
+          options={Array.isArray(tools) ? tools.map(tool => ({
+            value: tool.id,
+            label: tool.name
+          })) : []}
+          value={formData.toolId}
           onValueChange={(value) => onInputChange('toolId', value)}
+          placeholder={loadingTools ? "Loading tools..." : "Search and select a tool to test"}
+          searchPlaceholder="Search tools..."
+          emptyText="No tools found."
           disabled={loadingTools}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={loadingTools ? "Loading tools..." : "Choose a tool to test"} />
-          </SelectTrigger>
-          <SelectContent>
-            {Array.isArray(tools) && tools.map((tool) => (
-              <SelectItem key={tool.id} value={tool.id}>
-                {tool.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        />
         {loadingTools && (
           <p className="text-sm text-muted-foreground">Loading available tools...</p>
         )}

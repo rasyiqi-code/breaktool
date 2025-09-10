@@ -116,6 +116,7 @@ export function ToolCard({
                     src={(tool as { logo_url?: string }).logo_url || ''}
                     alt={`${tool.name} logo`}
                     fill
+                    sizes="32px"
                     className="object-cover"
                   />
                 </div>

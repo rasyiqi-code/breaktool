@@ -9,6 +9,7 @@ import { FileText, X } from 'lucide-react';
 import { RequireRole } from '@/components/auth/require-role';
 import { useUser } from '@stackframe/stack';
 import { FormGuideSidebar } from '@/components/testing/form-guide-sidebar';
+import { AITextMapper } from '@/components/testing/ai-text-mapper';
 import { 
   ToolSelectionSection, 
   ReportDetailsSection, 
@@ -31,6 +32,7 @@ export default function WriteTestReportPage() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [loadingTools, setLoadingTools] = useState(true);
   const [showMobileGuide, setShowMobileGuide] = useState(false);
+  const [userRole, setUserRole] = useState<string>('user');
   const [formData, setFormData] = useState({
     toolId: '',
     title: '',
@@ -56,7 +58,7 @@ export default function WriteTestReportPage() {
     status: 'submitted'
   });
 
-  // Load available tools
+  // Load available tools and user role
   useEffect(() => {
     const loadTools = async () => {
       try {
@@ -75,8 +77,23 @@ export default function WriteTestReportPage() {
       }
     };
 
+    const loadUserRole = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const response = await fetch('/api/users/me');
+        if (response.ok) {
+          const userData = await response.json();
+          setUserRole(userData.role || 'user');
+        }
+      } catch (error) {
+        console.error('Error loading user role:', error);
+      }
+    };
+
     loadTools();
-  }, []);
+    loadUserRole();
+  }, [user]);
 
   const handleInputChange = (field: string, value: string | string[]) => {
     setFormData(prev => ({
@@ -114,6 +131,13 @@ export default function WriteTestReportPage() {
     });
   };
 
+  const handleFormDataUpdate = (updates: Partial<typeof formData>) => {
+    setFormData(prev => ({
+      ...prev,
+      ...updates
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -138,19 +162,19 @@ export default function WriteTestReportPage() {
     setIsSubmitting(true);
 
     try {
-      // Generate a unique task ID for manual reports
-      const taskId = `manual-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const submitData = {
+        ...formData,
+        title: formData.title || `Manual Test Report - ${tools.find(t => t.id === formData.toolId)?.name || 'Unknown Tool'}`
+      };
+      
+      console.log('Submitting test report with data:', submitData);
       
       const response = await fetch('/api/testing/reports-management', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          taskId,
-          ...formData,
-          title: formData.title || `Manual Test Report - ${tools.find(t => t.id === formData.toolId)?.name || 'Unknown Tool'}`
-        }),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) {
@@ -177,7 +201,7 @@ export default function WriteTestReportPage() {
   };
 
   return (
-    <RequireRole requiredRoles={['verified_tester']}>
+    <RequireRole requiredRoles={['verified_tester', 'admin', 'super_admin']}>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-950/20 dark:to-indigo-950/20">
         <div className="container mx-auto py-4 px-0 sm:px-4 sm:py-8">
           <div className="flex flex-col xl:flex-row gap-4 xl:gap-8">
@@ -229,6 +253,13 @@ export default function WriteTestReportPage() {
                       onArrayInputChange={handleArrayInputChange}
                       onAddArrayItem={addArrayItem}
                       onRemoveArrayItem={removeArrayItem}
+                    />
+
+                    {/* AI Text Mapper - Admin Only */}
+                    <AITextMapper
+                      formData={formData}
+                      onFormDataUpdate={handleFormDataUpdate}
+                      isAdmin={['admin', 'super_admin'].includes(userRole)}
                     />
 
                     <ReportDetailsSection

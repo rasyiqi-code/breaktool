@@ -52,8 +52,20 @@ export default function VendorDashboardPage() {
         setShowSingleProductModal(false);
         setSingleProductUrl('');
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to sync product');
+        let errorMessage = 'Failed to sync product';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.details || errorMessage;
+        } catch (parseError) {
+          // If response is not JSON, try to get text
+          try {
+            const errorText = await response.text();
+            errorMessage = errorText || errorMessage;
+          } catch (textError) {
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+          }
+        }
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Error syncing single product:', error);

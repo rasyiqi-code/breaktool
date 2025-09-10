@@ -131,11 +131,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('POST /api/testing/reports-management - Starting request');
     const user = await stackServerApp.getUser();
     
     if (!user) {
+      console.log('POST /api/testing/reports-management - No user found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    console.log('POST /api/testing/reports-management - User found:', user.id);
 
     // Get user role (check both legacy role and activeRole for multi-role support)
     const userData = await prisma.user.findUnique({
@@ -159,6 +163,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('POST /api/testing/reports-management - Request body:', JSON.stringify(body, null, 2));
+    
     const {
       taskId,
       toolId,
@@ -186,26 +192,56 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validate required fields
-    if (!taskId || !toolId || !title || !summary) {
+    if (!toolId || !title || !summary) {
+      console.log('POST /api/testing/reports-management - Missing required fields:', { toolId, title, summary });
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields: toolId, title, and summary are required' },
         { status: 400 }
       );
     }
+    
+    console.log('POST /api/testing/reports-management - Validation passed, creating report...');
 
     // Create testing report
-    const report = await prisma.testingReport.create({
+    try {
+      // First, create a TestingTask if taskId is not provided
+      let finalTaskId = taskId;
+      if (!taskId) {
+        // Get tool name for task title
+        const tool = await prisma.tool.findUnique({
+          where: { id: toolId },
+          select: { name: true }
+        });
+        
+        const task = await prisma.testingTask.create({
+          data: {
+            toolId,
+            testerId: user.id,
+            title: `Manual Test Task - ${tool?.name || 'Unknown Tool'}`,
+            description: 'Manual test task created for direct report submission',
+            status: 'completed',
+            priority: 'medium',
+            deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+            reward: 0,
+            completedAt: new Date()
+          }
+        });
+        finalTaskId = task.id;
+        console.log('Created TestingTask:', task.id);
+      }
+      
+      const report = await prisma.testingReport.create({
       data: {
-        taskId,
+        taskId: finalTaskId,
         toolId,
         testerId: user.id,
         title,
         summary,
         detailedAnalysis,
-        overallScore: overallScore ? parseFloat(overallScore) : null,
-        valueScore: valueScore ? parseFloat(valueScore) : null,
-        usageScore: usageScore ? parseFloat(usageScore) : null,
-        integrationScore: integrationScore ? parseFloat(integrationScore) : null,
+        overallScore: overallScore && overallScore > 0 ? parseFloat(overallScore) : null,
+        valueScore: valueScore && valueScore > 0 ? parseFloat(valueScore) : null,
+        usageScore: usageScore && usageScore > 0 ? parseFloat(usageScore) : null,
+        integrationScore: integrationScore && integrationScore > 0 ? parseFloat(integrationScore) : null,
         pros: pros || [],
         cons: cons || [],
         recommendations,
@@ -240,12 +276,25 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    console.log('POST /api/testing/reports-management - Report created successfully:', report.id);
     return NextResponse.json(report, { status: 201 });
+    
+    } catch (dbError: any) {
+      console.error('Database error creating testing report:', dbError);
+      console.error('Database error details:', dbError.message);
+      console.error('Database error code:', dbError.code);
+      return NextResponse.json(
+        { error: 'Database error', details: dbError.message, code: dbError.code },
+        { status: 500 }
+      );
+    }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating testing report:', error);
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error.message },
       { status: 500 }
     );
   }

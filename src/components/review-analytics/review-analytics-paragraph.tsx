@@ -37,7 +37,7 @@ export default function ReviewAnalyticsParagraph({ reviewId }: ReviewAnalyticsPa
 
   const generateAnalyticsParagraph = () => {
     if (!analytics) {
-      return 'Sedang memuat data analytics untuk review ini...';
+      return 'Loading analytics data for this review...';
     }
 
     const helpfulnessScore = Math.round(analytics.helpfulnessScore);
@@ -45,57 +45,57 @@ export default function ReviewAnalyticsParagraph({ reviewId }: ReviewAnalyticsPa
     const engagementRate = Math.round(analytics.engagementRate);
     const sentimentScore = Math.round(analytics.sentimentScore);
 
-    let paragraph = `Berdasarkan analisis mendalam, review ini menunjukkan performa yang `;
+    let paragraph = `Based on in-depth analysis, this review shows `;
     
     // Determine overall performance
     const avgScore = (helpfulnessScore + qualityScore + engagementRate + sentimentScore) / 4;
     if (avgScore >= 80) {
-      paragraph += `sangat baik dengan skor rata-rata ${Math.round(avgScore)}%. `;
+      paragraph += `excellent performance with an average score of ${Math.round(avgScore)}%. `;
     } else if (avgScore >= 60) {
-      paragraph += `cukup baik dengan skor rata-rata ${Math.round(avgScore)}%. `;
+      paragraph += `good performance with an average score of ${Math.round(avgScore)}%. `;
     } else if (avgScore >= 40) {
-      paragraph += `sedang dengan skor rata-rata ${Math.round(avgScore)}%. `;
+      paragraph += `moderate performance with an average score of ${Math.round(avgScore)}%. `;
     } else {
-      paragraph += `perlu perbaikan dengan skor rata-rata ${Math.round(avgScore)}%. `;
+      paragraph += `needs improvement with an average score of ${Math.round(avgScore)}%. `;
     }
 
     // Add specific metrics
-    paragraph += `Dari segi tingkat kepuasan, review ini mendapat skor ${helpfulnessScore}% untuk helpfulness, `;
-    paragraph += `${qualityScore}% untuk kualitas konten, `;
-    paragraph += `${engagementRate}% untuk tingkat keterlibatan, `;
-    paragraph += `dan ${sentimentScore}% untuk sentimen positif. `;
+    paragraph += `In terms of satisfaction levels, this review scores ${helpfulnessScore}% for helpfulness, `;
+    paragraph += `${qualityScore}% for content quality, `;
+    paragraph += `${engagementRate}% for engagement rate, `;
+    paragraph += `and ${sentimentScore}% for positive sentiment. `;
 
     // Add interpretation
     if (helpfulnessScore >= 80) {
-      paragraph += `Tingkat helpfulness yang tinggi menunjukkan bahwa review ini sangat membantu bagi pembaca. `;
+      paragraph += `High helpfulness level indicates that this review is very helpful for readers. `;
     } else if (helpfulnessScore >= 60) {
-      paragraph += `Tingkat helpfulness yang cukup baik menunjukkan bahwa review ini memberikan nilai yang berguna. `;
+      paragraph += `Good helpfulness level indicates that this review provides valuable insights. `;
     } else {
-      paragraph += `Tingkat helpfulness yang rendah menunjukkan bahwa review ini mungkin perlu diperbaiki untuk memberikan lebih banyak insight. `;
+      paragraph += `Low helpfulness level indicates that this review may need improvement to provide more insights. `;
     }
 
     if (qualityScore >= 80) {
-      paragraph += `Kualitas konten yang tinggi mencerminkan review yang komprehensif dan terstruktur dengan baik. `;
+      paragraph += `High content quality reflects a comprehensive and well-structured review. `;
     } else if (qualityScore >= 60) {
-      paragraph += `Kualitas konten yang cukup baik menunjukkan review yang informatif meskipun ada ruang untuk perbaikan. `;
+      paragraph += `Good content quality indicates an informative review with room for improvement. `;
     } else {
-      paragraph += `Kualitas konten yang rendah menunjukkan bahwa review ini mungkin perlu lebih detail dan terstruktur. `;
+      paragraph += `Low content quality indicates that this review may need to be more detailed and structured. `;
     }
 
     if (engagementRate >= 80) {
-      paragraph += `Tingkat keterlibatan yang tinggi menunjukkan bahwa review ini menarik perhatian dan memicu diskusi. `;
+      paragraph += `High engagement rate indicates that this review captures attention and sparks discussion. `;
     } else if (engagementRate >= 60) {
-      paragraph += `Tingkat keterlibatan yang cukup baik menunjukkan bahwa review ini mendapat respons positif dari komunitas. `;
+      paragraph += `Good engagement rate indicates that this review receives positive response from the community. `;
     } else {
-      paragraph += `Tingkat keterlibatan yang rendah menunjukkan bahwa review ini mungkin perlu lebih menarik atau relevan. `;
+      paragraph += `Low engagement rate indicates that this review may need to be more engaging or relevant. `;
     }
 
     if (sentimentScore >= 80) {
-      paragraph += `Sentimen yang sangat positif menunjukkan bahwa review ini memberikan perspektif yang konstruktif dan bermanfaat.`;
+      paragraph += `Very positive sentiment indicates that this review provides constructive and beneficial perspectives.`;
     } else if (sentimentScore >= 60) {
-      paragraph += `Sentimen yang cukup positif menunjukkan bahwa review ini memberikan pandangan yang seimbang dan objektif.`;
+      paragraph += `Fairly positive sentiment indicates that this review provides balanced and objective views.`;
     } else {
-      paragraph += `Sentimen yang netral atau negatif menunjukkan bahwa review ini mungkin perlu lebih fokus pada aspek positif atau memberikan solusi yang konstruktif.`;
+      paragraph += `Neutral or negative sentiment indicates that this review may need to focus more on positive aspects or provide constructive solutions.`;
     }
 
     return paragraph;
@@ -104,7 +104,7 @@ export default function ReviewAnalyticsParagraph({ reviewId }: ReviewAnalyticsPa
   if (loading) {
     return (
       <div className="text-sm text-muted-foreground">
-        Sedang memuat data analytics untuk review ini...
+        Loading analytics data for this review...
       </div>
     );
   }
@@ -112,7 +112,7 @@ export default function ReviewAnalyticsParagraph({ reviewId }: ReviewAnalyticsPa
   if (error) {
     return (
       <div className="text-sm text-red-600">
-        Gagal memuat data analytics: {error}
+        Failed to load analytics data: {error}
       </div>
     );
   }

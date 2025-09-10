@@ -559,6 +559,7 @@ export default function ToolDetailPage() {
                         src={(tool.logo_url || tool.logoUrl) as string}
                         alt={`${tool.name} logo`}
                         fill
+                        sizes="(max-width: 640px) 48px, 64px"
                         className="object-cover"
                       />
                     </div>

@@ -46,8 +46,23 @@ export async function PATCH(
           return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
         }
 
+        // Validate required fields
+        if (!submission.name || !submission.website) {
+          return NextResponse.json({ 
+            error: 'Missing required fields: name and website are required' 
+          }, { status: 400 });
+        }
+
         // Create tool in main table
-        const slug = submission.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        let slug = submission.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        
+        // Ensure slug is unique
+        let counter = 1;
+        let originalSlug = slug;
+        while (await prisma.tool.findUnique({ where: { slug } })) {
+          slug = `${originalSlug}-${counter}`;
+          counter++;
+        }
         
         const newTool = await prisma.tool.create({
           data: {
@@ -59,9 +74,7 @@ export async function PATCH(
             logoUrl: submission.logoUrl,
             categoryId: submission.categoryId,
             submittedBy: submission.submittedBy,
-            status: 'active',
-            createdAt: new Date(),
-            updatedAt: new Date()
+            status: 'active'
           },
           include: {
             category: true
@@ -98,6 +111,14 @@ export async function PATCH(
     }
   } catch (error) {
     console.error('Error updating tool status:', error);
-    return NextResponse.json({ error: 'Failed to update tool status' }, { status: 500 });
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      toolId: await params.then(p => p.id).catch(() => 'unknown')
+    });
+    return NextResponse.json({ 
+      error: 'Failed to update tool status',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

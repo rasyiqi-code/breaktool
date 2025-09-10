@@ -220,7 +220,7 @@ export function ReviewCard({ review, onVote, showVoteButtons = true, toolName = 
 
   const generateCombinedReviewArticle = () => {
     if (!review.content) {
-      return <p>Tidak ada konten review yang tersedia.</p>;
+      return <p>No review content available.</p>;
     }
 
     const overallScore = review.overall_score || 0;
@@ -240,41 +240,41 @@ export function ReviewCard({ review, onVote, showVoteButtons = true, toolName = 
           {/* Scoring Section */}
           {overallScore > 0 && (
             <p>
-              Berdasarkan pengalaman saya menggunakan {toolName}, saya memberikan skor keseluruhan <strong>{overallScore.toFixed(1)}/10</strong>. 
-              {valueScore > 0 && ` Dari segi nilai untuk uang, tool ini mendapat skor ${valueScore.toFixed(1)}/10.`}
-              {usageScore > 0 && ` Kemudahan penggunaan mendapat skor ${usageScore.toFixed(1)}/10.`}
-              {integrationScore > 0 && ` Sedangkan untuk integrasi dengan tools lain mendapat skor ${integrationScore.toFixed(1)}/10.`}
+              Based on my experience using {toolName}, I give it an overall score of <strong>{overallScore.toFixed(1)}/10</strong>. 
+              {valueScore > 0 && ` In terms of value for money, this tool scores ${valueScore.toFixed(1)}/10.`}
+              {usageScore > 0 && ` Ease of use scores ${usageScore.toFixed(1)}/10.`}
+              {integrationScore > 0 && ` As for integration with other tools, it scores ${integrationScore.toFixed(1)}/10.`}
             </p>
           )}
 
           {/* Pros Section */}
           {review.pros && review.pros.length > 0 && (
             <p>
-              <strong>Keunggulan utama</strong> yang saya temukan dari {toolName} adalah {review.pros.map((pro, index) => {
-                if (index === review.pros!.length - 1) return `dan ${pro}`;
+              The <strong>main advantages</strong> I found with {toolName} are {review.pros.map((pro, index) => {
+                if (index === review.pros!.length - 1) return `and ${pro}`;
                 if (index === review.pros!.length - 2) return `${pro} `;
                 return `${pro}, `;
               }).join('')}. 
-              {review.pros.length === 1 ? 'Fitur ini sangat membantu dalam meningkatkan produktivitas.' : 'Fitur-fitur ini sangat membantu dalam meningkatkan produktivitas.'}
+              {review.pros.length === 1 ? 'This feature is very helpful in increasing productivity.' : 'These features are very helpful in increasing productivity.'}
             </p>
           )}
 
           {/* Cons Section */}
           {review.cons && review.cons.length > 0 && (
             <p>
-              Namun, ada beberapa <strong>keterbatasan</strong> yang perlu diperhatikan: {review.cons.map((con, index) => {
-                if (index === review.cons!.length - 1) return `dan ${con}`;
+              However, there are some <strong>limitations</strong> to consider: {review.cons.map((con, index) => {
+                if (index === review.cons!.length - 1) return `and ${con}`;
                 if (index === review.cons!.length - 2) return `${con} `;
                 return `${con}, `;
               }).join('')}. 
-              Meskipun demikian, keterbatasan ini tidak mengurangi nilai keseluruhan tool ini.
+              Nevertheless, these limitations do not diminish the overall value of this tool.
             </p>
           )}
 
           {/* Pain Points & ROI */}
           {(review.pain_points || review.roi_story) && (
             <p>
-              {review.pain_points && `Tool ini sangat membantu mengatasi ${review.pain_points}. `}
+              {review.pain_points && `This tool is very helpful in addressing ${review.pain_points}. `}
               {review.roi_story && review.roi_story}
             </p>
           )}
