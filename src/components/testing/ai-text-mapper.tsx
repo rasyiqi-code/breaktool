@@ -42,7 +42,7 @@ interface AITextMapperProps {
 export function AITextMapper({ formData, onFormDataUpdate, isAdmin }: AITextMapperProps) {
   const [testNotes, setTestNotes] = useState('');
   const [isMapping, setIsMapping] = useState(false);
-  const [mappedData, setMappedData] = useState<any>(null);
+  const [mappedData, setMappedData] = useState<Record<string, unknown> | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const { toast } = useToast();
 

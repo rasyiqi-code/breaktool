@@ -279,22 +279,22 @@ export async function POST(request: NextRequest) {
     console.log('POST /api/testing/reports-management - Report created successfully:', report.id);
     return NextResponse.json(report, { status: 201 });
     
-    } catch (dbError: any) {
+    } catch (dbError: unknown) {
       console.error('Database error creating testing report:', dbError);
-      console.error('Database error details:', dbError.message);
-      console.error('Database error code:', dbError.code);
+      console.error('Database error details:', (dbError as Error).message);
+      console.error('Database error code:', (dbError as { code?: string }).code);
       return NextResponse.json(
-        { error: 'Database error', details: dbError.message, code: dbError.code },
+        { error: 'Database error', details: (dbError as Error).message, code: (dbError as { code?: string }).code },
         { status: 500 }
       );
     }
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating testing report:', error);
-    console.error('Error details:', error.message);
-    console.error('Error stack:', error.stack);
+    console.error('Error details:', (error as Error).message);
+    console.error('Error stack:', (error as Error).stack);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }

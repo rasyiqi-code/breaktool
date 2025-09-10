@@ -28,14 +28,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    const { text, currentFormData } = await request.json();
+    const { text } = await request.json();
 
     if (!text || !text.trim()) {
       return NextResponse.json({ error: 'Text is required' }, { status: 400 });
     }
 
     // Map text to form fields using AI
-    const mappedData = await mapTextToFormFields(text, currentFormData);
+    const mappedData = await mapTextToFormFields(text);
 
     return NextResponse.json(mappedData);
   } catch (error) {
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function mapTextToFormFields(text: string, currentFormData: any) {
+async function mapTextToFormFields(text: string) {
   const apiKey = process.env.GEMINI_API_KEY;
   
   if (!apiKey) {
@@ -146,8 +146,8 @@ Return ONLY a JSON object with ALL possible fields filled based on intelligent i
   }
 }
 
-function validateAndCleanMappedData(data: any) {
-  const cleaned: any = {};
+function validateAndCleanMappedData(data: Record<string, unknown>) {
+  const cleaned: Record<string, unknown> = {};
 
   // Validate and clean each field
   if (data.title && typeof data.title === 'string') {
@@ -165,7 +165,7 @@ function validateAndCleanMappedData(data: any) {
   // Validate scores (1-10)
   const scoreFields = ['overallScore', 'valueScore', 'usageScore', 'integrationScore'];
   scoreFields.forEach(field => {
-    if (data[field] !== undefined) {
+    if (data[field] !== undefined && typeof data[field] === 'string') {
       const score = parseInt(data[field]);
       if (!isNaN(score) && score >= 1 && score <= 10) {
         cleaned[field] = score;
@@ -179,15 +179,15 @@ function validateAndCleanMappedData(data: any) {
 
   // Validate arrays
   if (Array.isArray(data.pros)) {
-    cleaned.pros = data.pros.filter((pro: any) => typeof pro === 'string' && pro.trim());
+    cleaned.pros = data.pros.filter((pro: unknown) => typeof pro === 'string' && pro.trim());
   }
 
   if (Array.isArray(data.cons)) {
-    cleaned.cons = data.cons.filter((con: any) => typeof con === 'string' && con.trim());
+    cleaned.cons = data.cons.filter((con: unknown) => typeof con === 'string' && con.trim());
   }
 
   if (Array.isArray(data.useCases)) {
-    cleaned.useCases = data.useCases.filter((useCase: any) => typeof useCase === 'string' && useCase.trim());
+    cleaned.useCases = data.useCases.filter((useCase: unknown) => typeof useCase === 'string' && useCase.trim());
   }
 
   // Validate dropdown values
@@ -204,7 +204,7 @@ function validateAndCleanMappedData(data: any) {
   };
 
   Object.entries(dropdownFields).forEach(([field, validValues]) => {
-    if (data[field] && validValues.includes(data[field])) {
+    if (data[field] && typeof data[field] === 'string' && validValues.includes(data[field])) {
       cleaned[field] = data[field];
     }
   });
@@ -216,7 +216,7 @@ function generateMockMapping(text: string) {
   // Intelligent text analysis for mock mapping
   const lowerText = text.toLowerCase();
   
-  const mapped: any = {};
+  const mapped: Record<string, unknown> = {};
 
   // Determine overall sentiment and tone
   const positiveWords = ['good', 'great', 'excellent', 'amazing', 'fantastic', 'love', 'perfect', 'awesome', 'wonderful', 'outstanding'];

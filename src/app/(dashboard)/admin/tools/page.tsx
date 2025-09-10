@@ -310,13 +310,13 @@ export default function AdminToolsPage() {
           const errorData = await response.json();
           console.error('Sync error details:', errorData);
           errorMessage = errorData.error || errorData.details || errorMessage;
-        } catch (parseError) {
+        } catch {
           // If response is not JSON, try to get text
           try {
             const errorText = await response.text();
             console.error('Sync error text:', errorText);
             errorMessage = errorText || errorMessage;
-          } catch (textError) {
+          } catch {
             errorMessage = `HTTP ${response.status}: ${response.statusText}`;
           }
         }

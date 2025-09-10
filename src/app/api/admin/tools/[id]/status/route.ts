@@ -58,7 +58,7 @@ export async function PATCH(
         
         // Ensure slug is unique
         let counter = 1;
-        let originalSlug = slug;
+        const originalSlug = slug;
         while (await prisma.tool.findUnique({ where: { slug } })) {
           slug = `${originalSlug}-${counter}`;
           counter++;

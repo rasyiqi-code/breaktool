@@ -35,7 +35,18 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause - exclude admin and super_admin users and avoid duplicates
-    const where: any = {
+    const where: {
+      AND: Array<{
+        OR?: Array<{
+          role?: { notIn: string[] } | string;
+          activeRole?: { notIn: string[] } | string;
+          primaryRole?: { notIn: string[] } | string;
+          name?: { contains: string; mode: 'insensitive' };
+          email?: { contains: string; mode: 'insensitive' };
+        }>;
+        verificationStatus?: { in: string[] } | string;
+      }>;
+    } = {
       AND: [
         {
           OR: [

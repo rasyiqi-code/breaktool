@@ -56,12 +56,12 @@ export default function VendorDashboardPage() {
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorData.details || errorMessage;
-        } catch (parseError) {
+        } catch {
           // If response is not JSON, try to get text
           try {
             const errorText = await response.text();
             errorMessage = errorText || errorMessage;
-          } catch (textError) {
+          } catch {
             errorMessage = `HTTP ${response.status}: ${response.statusText}`;
           }
         }
