@@ -28,7 +28,8 @@ export function useRoleCheck({ requiredRoles, redirectTo, fallbackPath }: RoleCh
         if (response.ok) {
           const result = await response.json();
           if (result.success) {
-            setUserRole(result.user.role || 'user');
+            // Use activeRole if available, fallback to role, then to 'user'
+            setUserRole(result.user.activeRole || result.user.role || 'user');
           }
         }
       } catch (error) {

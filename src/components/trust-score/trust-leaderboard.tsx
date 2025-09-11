@@ -51,7 +51,7 @@ export function TrustLeaderboard({ limit = 10, className = '' }: TrustLeaderboar
   const getRankColor = (index: number) => {
     switch (index) {
       case 0:
-        return 'bg-gradient-to-r from-yellow-100 to-yellow-200 border-yellow-300'
+        return 'bg-gradient-to-r from-yellow-200 to-yellow-300 border-yellow-400 shadow-lg'
       case 1:
         return 'bg-gradient-to-r from-gray-100 to-gray-200 border-gray-300'
       case 2:
@@ -71,15 +71,16 @@ export function TrustLeaderboard({ limit = 10, className = '' }: TrustLeaderboar
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {Array.from({ length: limit }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 animate-pulse">
+              <div key={i} className="flex items-center gap-3 p-3 animate-pulse">
                 <div className="w-8 h-8 bg-muted rounded-full"></div>
+                <div className="w-10 h-10 bg-muted rounded-full"></div>
                 <div className="flex-1 space-y-1">
-                  <div className="h-4 bg-muted rounded w-24"></div>
-                  <div className="h-3 bg-muted rounded w-16"></div>
+                  <div className="h-3 bg-muted rounded w-24"></div>
+                  <div className="h-2 bg-muted rounded w-16"></div>
                 </div>
-                <div className="h-6 bg-muted rounded w-12"></div>
+                <div className="h-5 bg-muted rounded w-12"></div>
               </div>
             ))}
           </div>
@@ -97,7 +98,7 @@ export function TrustLeaderboard({ limit = 10, className = '' }: TrustLeaderboar
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {topUsers.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <TrendingUp className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -108,38 +109,42 @@ export function TrustLeaderboard({ limit = 10, className = '' }: TrustLeaderboar
             topUsers.map((user, index) => (
               <div
                 key={user.userId}
-                className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${getRankColor(index)}`}
+                className={`flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 hover:shadow-md ${getRankColor(index)}`}
               >
-                <div className="flex items-center justify-center w-8 h-8">
+                {/* Trophy/Rank Icon */}
+                <div className="flex items-center justify-center w-8 h-8 flex-shrink-0">
                   {getRankIcon(index)}
                 </div>
                 
-                <Avatar className="w-10 h-10">
+                {/* Avatar */}
+                <Avatar className="w-10 h-10 flex-shrink-0">
                   <AvatarImage src={user.profileImageUrl} />
-                  <AvatarFallback>
+                  <AvatarFallback className="bg-gray-600 text-white font-semibold text-sm">
                     {user.displayName?.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 
+                {/* User Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium truncate">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="font-medium text-sm truncate text-gray-800">
                       {user.displayName || 'Anonymous User'}
                     </span>
                     {user.badge && (
-                      <Badge variant="secondary" className="text-xs">
-                        {user.badge}
-                      </Badge>
+                      <div className="w-5 h-5 bg-gray-800 rounded-md flex items-center justify-center">
+                        <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                      </div>
                     )}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-xs text-gray-700">
                     {user.factors?.reviewCount || 0} reviews • {user.factors?.helpfulVotesReceived || 0} helpful votes
                   </div>
                 </div>
                 
-                <div className="text-right">
-                  <div className="text-lg font-bold">{user.score}</div>
-                  <div className="text-xs text-muted-foreground">/ 100</div>
+                {/* Trust Score */}
+                <div className="text-right flex-shrink-0">
+                  <div className="text-xl font-bold text-gray-800">{user.score}</div>
+                  <div className="text-xs text-gray-600">/ 100</div>
                 </div>
               </div>
             ))
@@ -147,10 +152,10 @@ export function TrustLeaderboard({ limit = 10, className = '' }: TrustLeaderboar
         </div>
         
         {topUsers.length > 0 && (
-          <div className="mt-4 pt-4 border-t">
+          <div className="mt-4 pt-4 border-t border-gray-200">
             <button
               onClick={fetchTopUsers}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-gray-600 hover:text-gray-800 transition-colors"
             >
               Refresh leaderboard
             </button>

@@ -136,54 +136,58 @@ export function AITextMapper({ formData, onFormDataUpdate, isAdmin }: AITextMapp
 
   return (
     <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20">
-      <CardHeader className="pb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-            <MapPin className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+      <CardHeader className="pb-3 sm:pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+              <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600 dark:text-orange-400" />
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-base sm:text-lg font-semibold text-orange-900 dark:text-orange-100">
+                AI Text Mapper
+              </CardTitle>
+              <CardDescription className="text-orange-700 dark:text-orange-300 text-sm sm:text-base">
+                Paste your test notes and let AI map them to form fields automatically
+              </CardDescription>
+            </div>
           </div>
-          <div>
-            <CardTitle className="text-lg font-semibold text-orange-900 dark:text-orange-100">
-              AI Text Mapper
-            </CardTitle>
-            <CardDescription className="text-orange-700 dark:text-orange-300">
-              Paste your test notes and let AI map them to form fields automatically
-            </CardDescription>
-          </div>
-          <div className="ml-auto flex gap-2">
-            <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
+          <div className="flex gap-2 flex-wrap">
+            <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 text-xs">
               Smart Mapping
             </Badge>
-            <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+            <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 text-xs">
               Admin Only
             </Badge>
           </div>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4">
         {/* Text Input Area */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="text-base font-medium">Test Notes & Observations</Label>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+            <Label className="text-sm sm:text-base font-medium">Test Notes & Observations</Label>
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={copyToClipboard}
                 disabled={!testNotes.trim()}
-                className="border-orange-200 hover:border-orange-300 hover:bg-orange-50 dark:border-orange-700 dark:hover:border-orange-600 dark:hover:bg-orange-950/20"
+                className="border-orange-200 hover:border-orange-300 hover:bg-orange-50 dark:border-orange-700 dark:hover:border-orange-600 dark:hover:bg-orange-950/20 text-xs sm:text-sm"
               >
-                <Copy className="h-4 w-4 mr-1" />
-                Copy
+                <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                <span className="hidden xs:inline">Copy</span>
+                <span className="xs:hidden">📋</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={clearNotes}
                 disabled={!testNotes.trim()}
-                className="border-orange-200 hover:border-orange-300 hover:bg-orange-50 dark:border-orange-700 dark:hover:border-orange-600 dark:hover:bg-orange-950/20"
+                className="border-orange-200 hover:border-orange-300 hover:bg-orange-50 dark:border-orange-700 dark:hover:border-orange-600 dark:hover:bg-orange-950/20 text-xs sm:text-sm"
               >
-                Clear
+                <span className="hidden xs:inline">Clear</span>
+                <span className="xs:hidden">🗑️</span>
               </Button>
             </div>
           </div>
@@ -203,32 +207,34 @@ Example:
 - Pros: Easy setup, good UI, fast
 - Cons: Limited customization, expensive
 - Use cases: Project management, team collaboration"
-            rows={8}
-            className="border-orange-200 focus:border-orange-300 dark:border-orange-700 dark:focus:border-orange-600"
+            rows={6}
+            className="border-orange-200 focus:border-orange-300 dark:border-orange-700 dark:focus:border-orange-600 text-sm sm:text-base resize-none"
           />
           
-          <div className="flex items-center gap-2 text-sm text-orange-700 dark:text-orange-300">
-            <FileText className="h-4 w-4" />
+          <div className="flex items-start gap-2 text-xs sm:text-sm text-orange-700 dark:text-orange-300">
+            <FileText className="h-4 w-4 mt-0.5 flex-shrink-0" />
             <span>Paste any text about your testing experience - AI will intelligently map it to the appropriate form fields</span>
           </div>
         </div>
 
         {/* Mapping Button */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button
             onClick={mapTextToFields}
             disabled={isMapping || !testNotes.trim()}
-            className="flex-1 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            className="flex-1 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base"
           >
             {isMapping ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                AI is mapping your text...
+                <span className="hidden xs:inline">AI is mapping your text...</span>
+                <span className="xs:hidden">Mapping...</span>
               </>
             ) : (
               <>
                 <MapPin className="h-4 w-4 mr-2" />
-                Map Text to Form Fields
+                <span className="hidden xs:inline">Map Text to Form Fields</span>
+                <span className="xs:hidden">Map Text</span>
               </>
             )}
           </Button>
@@ -236,17 +242,18 @@ Example:
           <Button
             variant="outline"
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="border-orange-200 hover:border-orange-300 hover:bg-orange-50 dark:border-orange-700 dark:hover:border-orange-600 dark:hover:bg-orange-950/20"
+            className="border-orange-200 hover:border-orange-300 hover:bg-orange-50 dark:border-orange-700 dark:hover:border-orange-600 dark:hover:bg-orange-950/20 text-sm sm:text-base"
           >
-            {showAdvanced ? 'Hide' : 'Show'} Advanced
+            <span className="hidden xs:inline">{showAdvanced ? 'Hide' : 'Show'} Advanced</span>
+            <span className="xs:hidden">{showAdvanced ? 'Hide' : 'Show'}</span>
           </Button>
         </div>
 
         {/* Advanced Options */}
         {showAdvanced && (
-          <div className="p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-700">
-            <h4 className="font-medium text-orange-900 dark:text-orange-100 mb-2">Advanced Mapping Options</h4>
-            <div className="space-y-2 text-sm text-orange-700 dark:text-orange-300">
+          <div className="p-3 sm:p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-700">
+            <h4 className="font-medium text-orange-900 dark:text-orange-100 mb-2 text-sm sm:text-base">Advanced Mapping Options</h4>
+            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-orange-700 dark:text-orange-300">
               <p>• AI will automatically detect scores, ratings, and numerical values</p>
               <p>• Identifies pros/cons, recommendations, and use cases</p>
               <p>• Maps qualitative assessments to appropriate dropdown values</p>
@@ -257,44 +264,48 @@ Example:
 
         {/* Loading State */}
         {isMapping && (
-          <div className="flex items-center justify-center gap-2 p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-700">
+          <div className="flex items-center justify-center gap-2 p-3 sm:p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-700">
             <Loader2 className="h-4 w-4 animate-spin text-orange-600 dark:text-orange-400" />
-            <span className="text-sm text-orange-700 dark:text-orange-300">
-              AI is analyzing your text and mapping it to form fields...
+            <span className="text-xs sm:text-sm text-orange-700 dark:text-orange-300">
+              <span className="hidden xs:inline">AI is analyzing your text and mapping it to form fields...</span>
+              <span className="xs:hidden">AI is analyzing...</span>
             </span>
           </div>
         )}
 
         {/* Mapped Results */}
         {mappedData && (
-          <div className="space-y-4 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-700">
+          <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-700">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-              <span className="font-medium text-green-800 dark:text-green-200">
+              <span className="font-medium text-green-800 dark:text-green-200 text-sm sm:text-base">
                 AI Mapping Complete
               </span>
             </div>
             
             <div className="space-y-3">
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   size="sm"
                   onClick={() => applyMappedData()}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm"
                 >
-                  Apply All Mapped Data
+                  <span className="hidden xs:inline">Apply All Mapped Data</span>
+                  <span className="xs:hidden">Apply All</span>
                 </Button>
-                {Object.keys(mappedData).map((key) => (
-                  <Button
-                    key={key}
-                    size="sm"
-                    variant="outline"
-                    onClick={() => applyMappedData(key)}
-                    className="border-green-200 hover:border-green-300 hover:bg-green-50 dark:border-green-700 dark:hover:border-green-600 dark:hover:bg-green-950/20"
-                  >
-                    Apply {key}
-                  </Button>
-                ))}
+                <div className="flex gap-2 flex-wrap">
+                  {Object.keys(mappedData).map((key) => (
+                    <Button
+                      key={key}
+                      size="sm"
+                      variant="outline"
+                      onClick={() => applyMappedData(key)}
+                      className="border-green-200 hover:border-green-300 hover:bg-green-50 dark:border-green-700 dark:hover:border-green-600 dark:hover:bg-green-950/20 text-xs sm:text-sm"
+                    >
+                      Apply {key}
+                    </Button>
+                  ))}
+                </div>
               </div>
               
               <div className="text-xs text-green-700 dark:text-green-300">
@@ -314,8 +325,8 @@ Example:
         {/* Help Text */}
         <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-700">
           <div className="flex items-start gap-2">
-            <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5" />
-            <div className="text-sm text-blue-700 dark:text-blue-300">
+            <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
               <p className="font-medium mb-1">How it works:</p>
               <ul className="space-y-1 text-xs">
                 <li>• Paste any text about your testing experience</li>

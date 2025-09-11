@@ -1,4 +1,4 @@
-# 🚀 Breaktool
+# 🚀 Breaktool v1.2.0
 
 **Discover. Test. Decide.** - Open source SaaS review platform with verified tester networks.
 
@@ -12,6 +12,9 @@
 - **Analytics & Insights** - Platform analytics, user engagement metrics, review analytics
 - **Performance Optimized** - Bundle analysis, API caching, database indexing
 - **SEO Ready** - Dynamic metadata, structured data, XML sitemaps, Open Graph support
+- **Product Hunt Integration** - Official Product Hunt API integration with proper branding
+- **Enhanced UX** - Read-only mode for guests, notification badges, interactive buttons
+- **Mobile-First Design** - Responsive footer with expandable content and modern UI
 
 ## Tech Stack
 
@@ -213,6 +216,32 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - **Sample Data** - Development data generation scripts
 - **Error Boundaries** - Graceful error handling
 - **Performance Monitoring** - Core Web Vitals tracking
+
+## What's New in v1.2.0
+
+### ✨ Enhanced User Experience
+- **Read-only Mode for Guests** - Content visible but interactions require login
+- **Red Notification Badges** - Real-time count indicators for reviews, discussions, and reports
+- **Interactive Action Buttons** - Visible but non-interactive for non-logged users with login prompts
+- **Simplified Recommendation Buttons** - Compact Keep/Try/Stop selection with clear visual feedback
+
+### 🎨 UI/UX Improvements
+- **Mobile-Optimized Footer** - Expandable design with clean, simple layout
+- **Product Hunt Attribution** - Official branding with proper logo integration
+- **Enhanced Component Props** - Added readOnly functionality to all interactive components
+- **Better Button Interactions** - Improved UX for non-logged users
+
+### 🔧 Technical Enhancements
+- **Component Refactoring** - Enhanced reusability and maintainability
+- **Better Error Handling** - Improved user feedback for edge cases
+- **Performance Optimizations** - Reduced bundle size and improved loading times
+- **Accessibility Improvements** - Better screen reader support and keyboard navigation
+
+### 🐛 Bug Fixes
+- **Fixed Product Hunt Logo 404 Error** - Resolved deployment issue with missing assets
+- **Updated .gitignore** - Fixed public directory exclusion for Next.js projects
+- **Enhanced TypeScript Support** - Resolved unused parameter warnings
+- **Optimized Button Interactions** - Better UX for non-logged users
 
 ## Roadmap
 

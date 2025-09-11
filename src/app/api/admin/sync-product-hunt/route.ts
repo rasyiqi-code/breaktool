@@ -3,7 +3,12 @@ import { ProductHuntService } from '@/lib/services/product-hunt.service';
 import { stackServerApp } from '@/lib/stack-server';
 import { prisma } from '@/lib/prisma';
 
+// Configure timeout for this API route (5 minutes)
+export const maxDuration = 300;
+
 export async function POST(request: NextRequest) {
+  let syncTimeout: NodeJS.Timeout | undefined;
+  
   try {
     // Check if user is authenticated and has admin role
     const stackUser = await stackServerApp.getUser();
@@ -134,6 +139,11 @@ export async function POST(request: NextRequest) {
       endDate
     });
 
+    // Add timeout handling
+    syncTimeout = setTimeout(() => {
+      console.error('Product Hunt sync timed out after 4 minutes');
+    }, 240000); // 4 minutes warning
+
     // Perform sync based on parameters
     let result;
     if (syncOldData) {
@@ -169,6 +179,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Clear timeout
+    if (syncTimeout) {
+      clearTimeout(syncTimeout);
+    }
+
     return NextResponse.json({
       success: true,
       message: `Successfully synced ${result.created} new tools from Product Hunt`,
@@ -185,6 +200,11 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error syncing Product Hunt:', error);
+    
+    // Clear timeout if it exists
+    if (syncTimeout) {
+      clearTimeout(syncTimeout);
+    }
     
     return NextResponse.json(
       { 

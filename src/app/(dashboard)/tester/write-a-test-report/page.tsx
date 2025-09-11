@@ -203,48 +203,50 @@ export default function WriteTestReportPage() {
   return (
     <RequireRole requiredRoles={['verified_tester', 'admin', 'super_admin']}>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-950/20 dark:to-indigo-950/20">
-        <div className="container mx-auto py-4 px-0 sm:px-4 sm:py-8">
-          <div className="flex flex-col xl:flex-row gap-4 xl:gap-8">
+        <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+          <div className="flex flex-col xl:flex-row gap-3 sm:gap-4 xl:gap-8">
             {/* Desktop Sidebar */}
             <div className="hidden xl:block flex-shrink-0 sticky top-4 self-start">
-              <FormGuideSidebar />
+              <div className="w-80">
+                <FormGuideSidebar />
               </div>
+            </div>
 
             {/* Main Form */}
             <div className="flex-1 min-w-0">
-              <Card className="border-0 shadow-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-2xl overflow-hidden">
-                <CardHeader className="py-8 sm:py-12 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white rounded-t-xl shadow-lg">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 h-full">
+              <Card className="border-0 shadow-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-xl sm:rounded-2xl overflow-hidden">
+                <CardHeader className="py-6 sm:py-8 md:py-12 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white rounded-t-xl shadow-lg">
+                  <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-3 sm:gap-4">
-                      <div className="p-3 sm:p-4 rounded-2xl bg-white/15 backdrop-blur-sm shadow-lg border border-white/20">
-                        <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
-              </div>
+                      <div className="p-2 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl bg-white/15 backdrop-blur-sm shadow-lg border border-white/20">
+                        <FileText className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-white" />
+                      </div>
                       <div className="space-y-1">
-                        <CardTitle className="text-2xl sm:text-3xl xl:text-4xl font-bold text-white tracking-tight">
+                        <CardTitle className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-bold text-white tracking-tight">
                           Write Test Report
                         </CardTitle>
                         <CardDescription className="text-blue-100 text-sm sm:text-base xl:text-lg font-medium">
-              Submit a comprehensive test report for a tool or service
-            </CardDescription>
-                </div>
-              </div>
-              </div>
+                          Submit a comprehensive test report for a tool or service
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="px-2 sm:px-6 lg:px-10 py-6 sm:py-8 lg:py-10">
+                <CardContent className="px-3 sm:px-4 md:px-6 lg:px-10 py-4 sm:py-6 md:py-8 lg:py-10">
                   {/* Mobile Guide Button */}
-                  <div className="xl:hidden mb-6">
+                  <div className="xl:hidden mb-4 sm:mb-6">
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                      className="w-full flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700 text-sm sm:text-base"
                       onClick={() => setShowMobileGuide(!showMobileGuide)}
                     >
                       <FileText className="h-4 w-4" />
                       {showMobileGuide ? 'Hide Form Guide' : 'Show Form Guide'}
-                </Button>
-              </div>
+                    </Button>
+                  </div>
 
-                  <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-10">
+                  <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 md:space-y-10">
                     <ToolSelectionSection
                       formData={formData}
                       tools={tools}
@@ -303,36 +305,38 @@ export default function WriteTestReportPage() {
                     />
 
               {/* Submit Button */}
-                    <div className="flex gap-4 pt-6 border-t border-border/50">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-border/50">
                       <Button 
                         type="submit" 
                         disabled={isSubmitting} 
-                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base"
                         size="lg"
                       >
                         {isSubmitting ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Submitting Report...
+                            <span className="hidden xs:inline">Submitting Report...</span>
+                            <span className="xs:hidden">Submitting...</span>
                           </>
                         ) : (
                           <>
                             <FileText className="h-4 w-4 mr-2" />
-                            Submit Report
+                            <span className="hidden xs:inline">Submit Report</span>
+                            <span className="xs:hidden">Submit</span>
                           </>
                         )}
                       </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.back()}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => router.back()}
                         disabled={isSubmitting}
-                        className="px-8 border-2 hover:bg-muted/50 transition-all duration-200"
+                        className="px-4 sm:px-8 border-2 hover:bg-muted/50 transition-all duration-200 text-sm sm:text-base"
                         size="lg"
-                >
-                  Cancel
-                </Button>
-              </div>
+                      >
+                        Cancel
+                      </Button>
+                    </div>
             </form>
           </CardContent>
         </Card>
@@ -342,14 +346,14 @@ export default function WriteTestReportPage() {
           {/* Mobile Guide Modal */}
           {showMobileGuide && (
             <div className="fixed inset-0 bg-black/50 z-50 xl:hidden">
-              <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-2xl p-2 sm:p-6 max-h-[85vh] overflow-y-auto">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Form Guide</h3>
+              <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-xl sm:rounded-t-2xl p-3 sm:p-4 md:p-6 max-h-[85vh] overflow-y-auto">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <h3 className="text-base sm:text-lg font-semibold">Form Guide</h3>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowMobileGuide(false)}
-                    className="rounded-full"
+                    className="rounded-full p-2"
                   >
                     <X className="h-4 w-4" />
                   </Button>

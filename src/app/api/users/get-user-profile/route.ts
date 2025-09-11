@@ -23,6 +23,8 @@ export async function GET(request: NextRequest) {
         name: true,
         avatarUrl: true,
         role: true,
+        activeRole: true,
+        primaryRole: true,
         trustScore: true,
         createdAt: true,
         updatedAt: true,

@@ -7,26 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2025-01-08
+
 ### Added
-- Bundle analysis script for performance monitoring
-- Advanced image optimization with lazy loading
-- API caching system with in-memory cache
-- Enhanced error handling with React Error Boundaries
-- Comprehensive security headers and CSP
-- Rate limiting for API routes
-- Performance monitoring with Core Web Vitals tracking
+- **Enhanced User Experience**
+  - Read-only mode for guests - content visible but interactions require login
+  - Red notification badges with real-time count indicators
+  - Interactive action buttons with login prompts for non-authenticated users
+  - Simplified recommendation buttons (Keep/Try/Stop) with clear visual feedback
+- **UI/UX Improvements**
+  - Mobile-optimized footer with expandable design
+  - Product Hunt attribution with official branding
+  - Enhanced component props with readOnly functionality
+  - Better button interactions for non-logged users
+- **Technical Enhancements**
+  - Component refactoring for enhanced reusability
+  - Better error handling with improved user feedback
+  - Performance optimizations with reduced bundle size
+  - Accessibility improvements for screen readers and keyboard navigation
 
 ### Changed
-- Improved TypeScript type safety across the entire codebase
-- Optimized database queries with proper indexing
-- Enhanced SEO implementation with dynamic metadata
-- Updated ESLint configuration for better code quality
+- Enhanced component architecture for better maintainability
+- Improved TypeScript support with resolved unused parameter warnings
+- Updated .gitignore for proper Next.js project structure
+- Optimized button interactions and user experience
 
 ### Fixed
-- Resolved all TypeScript compilation errors
-- Fixed dynamic import issues in lazy loading components
-- Corrected API route parameter types for Next.js 15 compatibility
-- Fixed performance monitoring type casting issues
+- Fixed Product Hunt logo 404 error - resolved deployment issue with missing assets
+- Updated .gitignore - fixed public directory exclusion for Next.js projects
+- Enhanced TypeScript support - resolved unused parameter warnings
+- Optimized button interactions - better UX for non-logged users
+- Improved component props - added readOnly functionality to all interactive components
 
 ## [1.0.0] - 2025-01-07
 
@@ -98,6 +109,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **v1.2.0** - Enhanced user experience with read-only mode, notification badges, and UI improvements
+- **v1.1.0** - Enhanced user experience with Product Hunt integration and mobile-first design
 - **v1.0.0** - Initial release with complete platform functionality
 - **v0.9.0** - Beta version with core features
 - **v0.8.0** - Alpha version with basic functionality

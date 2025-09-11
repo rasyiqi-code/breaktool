@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
@@ -22,7 +23,9 @@ import {
   Grid3X3,
   List,
   ExternalLink,
-  Trash2
+  Trash2,
+  ChevronRight,
+  ChevronUp
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -64,6 +67,12 @@ export default function AdminToolsPage() {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [notesModalOpen, setNotesModalOpen] = useState(false);
+  
+  // Expand/collapse states for list view
+  const [expandedTools, setExpandedTools] = useState<Set<string>>(new Set());
+  
+  // Ref for sync dropdown button
+  const syncButtonRef = useRef<HTMLButtonElement>(null);
 
   const fetchPendingTools = async () => {
     try {
@@ -123,6 +132,24 @@ export default function AdminToolsPage() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
+  }, [showSyncDropdown]);
+
+  // Update dropdown position on scroll/resize
+  useEffect(() => {
+    if (showSyncDropdown) {
+      const handleScroll = () => {
+        // Force re-render to update position
+        setShowSyncDropdown(prev => prev);
+      };
+
+      window.addEventListener('scroll', handleScroll);
+      window.addEventListener('resize', handleScroll);
+      
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('resize', handleScroll);
+      };
+    }
   }, [showSyncDropdown]);
 
   useEffect(() => {
@@ -207,6 +234,18 @@ export default function AdminToolsPage() {
   const handleAddNotes = (tool: ToolSubmission) => {
     setSelectedTool(tool);
     setNotesModalOpen(true);
+  };
+
+  const toggleToolExpansion = (toolId: string) => {
+    setExpandedTools(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(toolId)) {
+        newSet.delete(toolId);
+      } else {
+        newSet.add(toolId);
+      }
+      return newSet;
+    });
   };
 
   const handleSaveEdit = async (toolId: string, data: { name: string; description: string; website: string; submittedBy: string; category: string }) => {
@@ -563,89 +602,119 @@ export default function AdminToolsPage() {
 
   if (loading) {
     return (
-          <RequireRole requiredRoles={['admin', 'super_admin']}>
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">Loading tools...</p>
+      <RequireRole requiredRoles={['admin', 'super_admin']}>
+        <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+              <p className="mt-2 text-muted-foreground">Loading tools...</p>
+            </div>
           </div>
         </div>
-      </div>
-    </RequireRole>
+      </RequireRole>
     );
   }
 
   return (
     <RequireRole requiredRoles={['admin', 'super_admin']}>
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">Tool Management</h1>
-            <p className="text-muted-foreground">Review and manage tool submissions</p>
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8">
+        {/* Header Section - Mobile First */}
+        <div className="mb-4 sm:mb-6">
+          <div className="mb-3 sm:mb-4">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Tool Management</h1>
+            <p className="text-muted-foreground text-xs sm:text-sm md:text-base">Review and manage tool submissions</p>
           </div>
-          <div className="flex gap-2">
+          
+          {/* Action Buttons with Horizontal Scroll on Mobile */}
+          <div className="relative">
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-2 min-w-max pb-2 -mx-1 px-1">
             {/* Product Hunt Sync Dropdown */}
             <div className="relative sync-dropdown">
               <Button 
+                ref={syncButtonRef}
                 variant="default" 
                 size="sm" 
                 disabled={syncing || loading}
-                className="bg-orange-500 hover:bg-orange-600"
+                className="bg-orange-500 hover:bg-orange-600 whitespace-nowrap flex-shrink-0"
                 onClick={() => setShowSyncDropdown(!showSyncDropdown)}
               >
-                <Zap className={`w-4 h-4 mr-2 ${syncing ? 'animate-pulse' : ''}`} />
-                {syncing ? 'Syncing...' : 'Sync Product Hunt'}
-                <ChevronDown className="w-4 h-4 ml-2" />
+                <Zap className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${syncing ? 'animate-pulse' : ''}`} />
+                <span className="hidden xs:inline">{syncing ? 'Syncing...' : 'Sync Product Hunt'}</span>
+                <span className="xs:hidden">{syncing ? 'Sync...' : 'Sync'}</span>
+                <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
               </Button>
               
               {showSyncDropdown && (
-                <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                <div className="fixed inset-0 z-50">
+                  {/* Backdrop */}
+                  <div 
+                    className="absolute inset-0 bg-black bg-opacity-25"
+                    onClick={() => setShowSyncDropdown(false)}
+                  />
+                  {/* Dropdown */}
+                  <div 
+                    className="absolute w-64 sm:w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg"
+                    style={{
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                   <div className="py-1">
                     <button
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="w-full text-left px-3 sm:px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       onClick={() => {
-                        handleSyncProductHunt({ limit: 20 });
+                        console.log('Normal Sync clicked - starting...');
                         setShowSyncDropdown(false);
+                        handleSyncProductHunt({ limit: 20 });
                       }}
                     >
                       <div className="font-medium">Normal Sync</div>
-                      <div className="text-xs text-gray-500">Add new tools (skip existing)</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Add new tools (skip existing)</div>
                     </button>
                     
                     <button
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="w-full text-left px-3 sm:px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       onClick={() => {
-                        handleSyncProductHunt({ forceSync: true, limit: 20 });
+                        console.log('Force Sync clicked - starting...');
                         setShowSyncDropdown(false);
+                        handleSyncProductHunt({ forceSync: true, limit: 20 });
                       }}
                     >
                       <div className="font-medium">Force Sync</div>
-                      <div className="text-xs text-gray-500">Add all tools (including duplicates)</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Add all tools (including duplicates)</div>
                     </button>
                     
                     <button
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => {
-                        handleSyncProductHunt({ updateExisting: true, limit: 20 });
+                      className="w-full text-left px-3 sm:px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Update Existing clicked');
                         setShowSyncDropdown(false);
+                        await handleSyncProductHunt({ updateExisting: true, limit: 20 });
                       }}
                     >
                       <div className="font-medium">Update Existing</div>
-                      <div className="text-xs text-gray-500">Update existing tools with new data</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Update existing tools with new data</div>
                     </button>
                     
                     <div className="border-t border-gray-200"></div>
                     
                     <button
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => {
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Sync Today\'s Products clicked');
                         const today = new Date().toISOString().split('T')[0];
-                        handleSyncProductHunt({ 
+                        setShowSyncDropdown(false);
+                        await handleSyncProductHunt({ 
                           syncByDate: true, 
                           startDate: today,
                         });
-                        setShowSyncDropdown(false);
                       }}
                     >
                       <div className="font-medium">Sync Today&apos;s Products</div>
@@ -654,19 +723,22 @@ export default function AdminToolsPage() {
                     
                     <button
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => {
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Sync Yesterday\'s Products clicked');
                         const today = new Date();
                         const yesterday = new Date(today);
                         yesterday.setDate(yesterday.getDate() - 1);
                         const yesterdayStr = yesterday.toISOString().split('T')[0];
                         const todayStr = today.toISOString().split('T')[0];
                         
-                        handleSyncProductHunt({ 
+                        setShowSyncDropdown(false);
+                        await handleSyncProductHunt({ 
                           syncByDate: true, 
                           startDate: yesterdayStr,
                           endDate: todayStr,
                         });
-                        setShowSyncDropdown(false);
                       }}
                     >
                       <div className="font-medium">Sync Yesterday&apos;s Products</div>
@@ -675,19 +747,22 @@ export default function AdminToolsPage() {
                     
                     <button
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => {
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Sync This Week\'s Products clicked');
                         const today = new Date();
                         const weekAgo = new Date(today);
                         weekAgo.setDate(weekAgo.getDate() - 7);
                         const weekAgoStr = weekAgo.toISOString().split('T')[0];
                         const todayStr = today.toISOString().split('T')[0];
                         
-                        handleSyncProductHunt({ 
+                        setShowSyncDropdown(false);
+                        await handleSyncProductHunt({ 
                           syncByDate: true, 
                           startDate: weekAgoStr,
                           endDate: todayStr,
                         });
-                        setShowSyncDropdown(false);
                       }}
                     >
                       <div className="font-medium">Sync This Week&apos;s Products</div>
@@ -698,7 +773,10 @@ export default function AdminToolsPage() {
                     
                     <button
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Single Product clicked');
                         setShowSingleProductModal(true);
                         setShowSyncDropdown(false);
                       }}
@@ -709,101 +787,110 @@ export default function AdminToolsPage() {
                     
                     <button
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => {
-                        handleSyncProductHunt({ syncOldData: true });
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Sync Old Data clicked');
                         setShowSyncDropdown(false);
+                        await handleSyncProductHunt({ syncOldData: true });
                       }}
                     >
                       <div className="font-medium">Sync Old Data</div>
                       <div className="text-xs text-gray-500">Add categories to existing tools</div>
                     </button>
                   </div>
+                  </div>
                 </div>
               )}
             </div>
-            <Button variant="outline" size="sm" onClick={fetchPendingTools} disabled={loading}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
+            <Button variant="outline" size="sm" onClick={fetchPendingTools} disabled={loading} className="whitespace-nowrap flex-shrink-0">
+              <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${loading ? 'animate-spin' : ''}`} />
+              <span className="hidden xs:inline">Refresh</span>
+              <span className="xs:hidden">↻</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleTestProductHunt} className="bg-blue-500 hover:bg-blue-600 text-white">
-              Test PH API
+            <Button variant="outline" size="sm" onClick={handleTestProductHunt} className="bg-blue-500 hover:bg-blue-600 text-white whitespace-nowrap flex-shrink-0">
+              <span className="hidden xs:inline">Test PH API</span>
+              <span className="xs:hidden">Test</span>
             </Button>
             
             {/* View Mode Toggle */}
-            <div className="flex border rounded-md">
+            <div className="flex border rounded-md flex-shrink-0">
               <Button
                 variant={viewMode === 'card' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('card')}
-                className="rounded-r-none border-r"
+                className="rounded-r-none border-r px-2 sm:px-3"
               >
-                <Grid3X3 className="w-4 h-4" />
+                <Grid3X3 className="w-3 h-3 sm:w-4 sm:h-4" />
               </Button>
               <Button
                 variant={viewMode === 'list' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('list')}
-                className="rounded-l-none"
+                className="rounded-l-none px-2 sm:px-3"
               >
-                <List className="w-4 h-4" />
+                <List className="w-3 h-3 sm:w-4 sm:h-4" />
               </Button>
             </div>
             
-            <Button variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
-              Export
+            <Button variant="outline" size="sm" className="whitespace-nowrap flex-shrink-0">
+              <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden xs:inline">Export</span>
+              <span className="xs:hidden">↓</span>
             </Button>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Tools</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+        {/* Statistics Cards - Mobile First */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6">
+          <Card className="p-3 sm:p-4">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Total Tools</CardTitle>
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
+            <CardContent className="pt-1 sm:pt-2">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold">{stats.total}</div>
               <p className="text-xs text-muted-foreground">
                 All submissions
               </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <Clock className="h-4 w-4 text-orange-500" />
+          <Card className="p-3 sm:p-4">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Pending</CardTitle>
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{stats.pending}</div>
+            <CardContent className="pt-1 sm:pt-2">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-orange-600">{stats.pending}</div>
               <p className="text-xs text-muted-foreground">
                 Awaiting review
               </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Approved</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-500" />
+          <Card className="p-3 sm:p-4">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Approved</CardTitle>
+              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+            <CardContent className="pt-1 sm:pt-2">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-green-600">{stats.approved}</div>
               <p className="text-xs text-muted-foreground">
                 Successfully approved
               </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Rejected</CardTitle>
-              <XCircle className="h-4 w-4 text-red-500" />
+          <Card className="p-3 sm:p-4">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Rejected</CardTitle>
+              <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
+            <CardContent className="pt-1 sm:pt-2">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-red-600">{stats.rejected}</div>
               <p className="text-xs text-muted-foreground">
                 Rejected submissions
               </p>
@@ -818,11 +905,11 @@ export default function AdminToolsPage() {
           onStatusFilterChange={setStatusFilter}
         />
 
-        {/* Bulk Actions */}
+        {/* Bulk Actions - Mobile Responsive */}
         {selectedTools.size > 0 && (
-          <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+          <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
                   {selectedTools.size} tool(s) selected
                 </span>
@@ -830,12 +917,12 @@ export default function AdminToolsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setSelectedTools(new Set())}
-                  className="text-blue-600 hover:text-blue-700"
+                  className="text-blue-600 hover:text-blue-700 w-fit"
                 >
                   Clear Selection
                 </Button>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -874,7 +961,7 @@ export default function AdminToolsPage() {
         {/* Tools Display */}
         {viewMode === 'card' ? (
           <div>
-            {/* Select All Header */}
+            {/* Select All Header - Mobile Responsive */}
             {getPaginatedTools().length > 0 && (
               <div className="flex items-center space-x-2 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <Checkbox
@@ -892,7 +979,7 @@ export default function AdminToolsPage() {
               </div>
             )}
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
               {Array.isArray(getPaginatedTools()) && getPaginatedTools().map((tool) => (
                 <ToolCard 
                   key={tool.id} 
@@ -910,7 +997,7 @@ export default function AdminToolsPage() {
           </div>
         ) : (
           <div>
-            {/* Select All Header for List View */}
+            {/* Select All Header for List View - Mobile Responsive */}
             {getPaginatedTools().length > 0 && (
               <div className="flex items-center space-x-2 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <Checkbox
@@ -928,92 +1015,150 @@ export default function AdminToolsPage() {
               </div>
             )}
             
-            <div className="space-y-4">
-              {Array.isArray(getPaginatedTools()) && getPaginatedTools().map((tool) => (
-                <div key={tool.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <Checkbox
-                        checked={selectedTools.has(tool.id)}
-                        onCheckedChange={(checked) => handleSelectTool(tool.id, checked as boolean)}
-                      />
-                      {tool.logo_url && (
-                        <Image 
-                          src={tool.logo_url} 
-                          alt={tool.name}
-                          width={48}
-                          height={48}
-                          className="w-12 h-12 rounded-lg object-cover"
+            <div className="space-y-2 sm:space-y-3 md:space-y-4">
+              {Array.isArray(getPaginatedTools()) && getPaginatedTools().map((tool) => {
+                const isExpanded = expandedTools.has(tool.id);
+                return (
+                  <div key={tool.id} className="border rounded-lg p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-start space-x-3">
+                        <Checkbox
+                          checked={selectedTools.has(tool.id)}
+                          onCheckedChange={(checked) => handleSelectTool(tool.id, checked as boolean)}
+                          className="mt-1 flex-shrink-0"
                         />
-                      )}
-                      <div>
-                        <h3 className="font-semibold text-lg">{tool.name}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                          {tool.description}
-                        </p>
-                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                          <a 
-                            href={tool.website_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                            <span>Website</span>
-                          </a>
-                          <span>Submitted by: {tool.submitted_by}</span>
-                          <span>Date: {new Date(tool.submitted_at).toLocaleDateString()}</span>
+                        {tool.logo_url && (
+                          <Image 
+                            src={tool.logo_url} 
+                            alt={tool.name}
+                            width={48}
+                            height={48}
+                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover flex-shrink-0"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-sm sm:text-base md:text-lg truncate">{tool.name}</h3>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium w-fit flex-shrink-0 ${
+                                tool.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                tool.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {tool.status}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewDetails(tool)}
+                                className="h-6 px-2 text-xs"
+                              >
+                                View
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(tool)}
+                                className="h-6 px-2 text-xs"
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleToolExpansion(tool.id)}
+                                className="p-1 h-6 w-6 flex-shrink-0"
+                              >
+                                {isExpanded ? (
+                                  <ChevronUp className="w-4 h-4" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                          
+
+                          {/* Expanded info - only visible when expanded */}
+                          {isExpanded && (
+                            <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                              <div className="space-y-2 text-xs sm:text-sm">
+                                <div>
+                                  <span className="font-medium text-gray-700 dark:text-gray-300">Category:</span>
+                                  <span className="ml-2 text-gray-600 dark:text-gray-400">
+                                    {typeof tool.category === 'string' ? tool.category : tool.category?.name || 'Unknown'}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-700 dark:text-gray-300">Company:</span>
+                                  <span className="ml-2 text-gray-600 dark:text-gray-400">{tool.company}</span>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-700 dark:text-gray-300">Website URL:</span>
+                                  <a 
+                                    href={tool.website_url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="ml-2 text-blue-600 hover:text-blue-700 underline break-all"
+                                  >
+                                    {tool.website_url}
+                                  </a>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-700 dark:text-gray-300">Submitted by:</span>
+                                  <span className="ml-2 text-gray-600 dark:text-gray-400">{tool.submitted_by}</span>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-700 dark:text-gray-300">Date:</span>
+                                  <span className="ml-2 text-gray-600 dark:text-gray-400">
+                                    {new Date(tool.submitted_at).toLocaleDateString()}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-700 dark:text-gray-300">Full Description:</span>
+                                  <p className="mt-1 text-gray-600 dark:text-gray-400 leading-relaxed">
+                                    {tool.description}
+                                  </p>
+                                </div>
+                                {tool.review_notes && (
+                                  <div>
+                                    <span className="font-medium text-gray-700 dark:text-gray-300">Review Notes:</span>
+                                    <p className="mt-1 text-gray-600 dark:text-gray-400 leading-relaxed">
+                                      {tool.review_notes}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        tool.status === 'approved' ? 'bg-green-100 text-green-800' :
-                        tool.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {tool.status}
-                      </span>
-                      <div className="flex space-x-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewDetails(tool)}
-                        >
-                          View
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(tool)}
-                        >
-                          Edit
-                        </Button>
-                        {tool.status === 'pending' && (
-                          <>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleStatusChange(tool.id, 'approved')}
-                              className="text-green-600 hover:text-green-700"
-                            >
-                              Approve
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleStatusChange(tool.id, 'rejected')}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              Reject
-                            </Button>
-                          </>
-                        )}
-                      </div>
+                      {tool.status === 'pending' && (
+                        <div className="flex flex-wrap gap-1 sm:gap-2 mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleStatusChange(tool.id, 'approved')}
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleStatusChange(tool.id, 'rejected')}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            Reject
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -1035,23 +1180,25 @@ export default function AdminToolsPage() {
           </div>
         )}
 
-        {/* Pagination */}
+        {/* Pagination - Mobile Responsive */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-8">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex flex-col gap-3 sm:gap-4 mt-4 sm:mt-6 md:mt-8">
+            <div className="text-xs sm:text-sm text-muted-foreground text-center">
               Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredTools.length)} of {filteredTools.length} tools
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-1 sm:gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
+                className="text-xs px-2 sm:px-3"
               >
-                Previous
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">‹</span>
               </Button>
               <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
                   const pageNum = i + 1;
                   return (
                     <Button
@@ -1059,20 +1206,35 @@ export default function AdminToolsPage() {
                       variant={currentPage === pageNum ? "default" : "outline"}
                       size="sm"
                       onClick={() => setCurrentPage(pageNum)}
-                      className="w-8 h-8 p-0"
+                      className="w-8 h-8 sm:w-9 sm:h-9 p-0 text-xs sm:text-sm"
                     >
                       {pageNum}
                     </Button>
                   );
                 })}
+                {totalPages > 3 && (
+                  <>
+                    <span className="text-xs text-muted-foreground px-1">...</span>
+                    <Button
+                      variant={currentPage === totalPages ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(totalPages)}
+                      className="w-8 h-8 sm:w-9 sm:h-9 p-0 text-xs sm:text-sm"
+                    >
+                      {totalPages}
+                    </Button>
+                  </>
+                )}
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
+                className="text-xs px-2 sm:px-3"
               >
-                Next
+                <span className="hidden sm:inline">Next</span>
+                <span className="sm:hidden">›</span>
               </Button>
             </div>
           </div>
@@ -1108,10 +1270,10 @@ export default function AdminToolsPage() {
           onSave={handleSaveNotes}
         />
 
-        {/* Single Product Sync Modal */}
+        {/* Single Product Sync Modal - Mobile Responsive */}
         {showSingleProductModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 shadow-xl">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-sm sm:max-w-md shadow-xl mx-2">
               <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
                 Sync Single Product from Product Hunt
               </h3>

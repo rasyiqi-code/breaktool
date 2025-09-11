@@ -190,7 +190,7 @@ export default function AdminDashboard() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          verification_status: 'approved',
+          verificationStatus: 'approved',
           review_notes: 'Approved via admin dashboard'
         }),
       });
@@ -290,7 +290,7 @@ export default function AdminDashboard() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          verification_status: 'rejected',
+          verificationStatus: 'rejected',
           review_notes: 'Rejected via admin dashboard'
         }),
       });

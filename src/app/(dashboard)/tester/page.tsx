@@ -111,6 +111,7 @@ export default function TesterDashboard() {
   const [testTasks, setTestTasks] = useState<TestTask[]>([]);
   const [testReports, setTestReports] = useState<TestReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingTasks, setLoadingTasks] = useState<Set<string>>(new Set());
 
   const fetchTesterStats = useCallback(async () => {
     try {
@@ -408,9 +409,13 @@ export default function TesterDashboard() {
                       <TestingTaskCard
                         key={task.id}
                         task={task}
+                        isLoading={loadingTasks.has(task.id)}
                         onStart={async (taskId) => {
                           // Handle start test - update task status to in_progress
                           try {
+                            // Add task to loading set
+                            setLoadingTasks(prev => new Set(prev).add(taskId));
+                            
                             const response = await fetch(`/api/testing/tester-stats/tasks/${taskId}`, {
                               method: 'PATCH',
                               headers: {
@@ -431,11 +436,21 @@ export default function TesterDashboard() {
                             }
                           } catch (error) {
                             console.error('Error starting task:', error);
+                          } finally {
+                            // Remove task from loading set
+                            setLoadingTasks(prev => {
+                              const newSet = new Set(prev);
+                              newSet.delete(taskId);
+                              return newSet;
+                            });
                           }
                         }}
                         onComplete={async (taskId) => {
                           // Handle complete test - update task status to completed and redirect to submit report
                           try {
+                            // Add task to loading set
+                            setLoadingTasks(prev => new Set(prev).add(taskId));
+                            
                             const response = await fetch(`/api/testing/tester-stats/tasks/${taskId}`, {
                               method: 'PATCH',
                               headers: {
@@ -458,6 +473,13 @@ export default function TesterDashboard() {
                             }
                           } catch (error) {
                             console.error('Error completing task:', error);
+                          } finally {
+                            // Remove task from loading set
+                            setLoadingTasks(prev => {
+                              const newSet = new Set(prev);
+                              newSet.delete(taskId);
+                              return newSet;
+                            });
                           }
                         }}
                         onView={(taskId) => {

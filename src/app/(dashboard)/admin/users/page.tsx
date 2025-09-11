@@ -172,7 +172,7 @@ function AdminUsersContent() {
       
       const body = user.role === 'vendor' 
         ? { status: newStatus }
-        : { verification_status: newStatus };
+        : { verificationStatus: newStatus };
 
       const response = await fetch(endpoint, {
         method: 'PATCH',
@@ -220,7 +220,7 @@ function AdminUsersContent() {
       
       const body = user.role === 'vendor' 
         ? { status: 'approved', review_notes: notes }
-        : { verification_status: 'approved', review_notes: notes };
+          : { verificationStatus: 'approved', review_notes: notes };
 
       const response = await fetch(endpoint, {
         method: 'PATCH',
@@ -271,7 +271,7 @@ function AdminUsersContent() {
       
       const body = user.role === 'vendor' 
         ? { status: 'rejected', review_notes: notes }
-        : { verification_status: 'rejected', review_notes: notes };
+        : { verificationStatus: 'rejected', review_notes: notes };
 
       const response = await fetch(endpoint, {
         method: 'PATCH',

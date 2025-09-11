@@ -10,7 +10,8 @@ import {
   CheckCircle, 
   Play,
   Calendar,
-  DollarSign
+  DollarSign,
+  Loader2
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -41,9 +42,10 @@ interface TestingTaskCardProps {
   onStart?: (taskId: string) => void;
   onComplete?: (taskId: string) => void;
   onView?: (taskId: string) => void;
+  isLoading?: boolean;
 }
 
-export function TestingTaskCard({ task, onStart, onComplete, onView }: TestingTaskCardProps) {
+export function TestingTaskCard({ task, onStart, onComplete, onView, isLoading = false }: TestingTaskCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
@@ -162,9 +164,14 @@ export function TestingTaskCard({ task, onStart, onComplete, onView }: TestingTa
               size="sm" 
               onClick={() => onStart(task.id)}
               className="flex-1"
+              disabled={isLoading}
             >
-              <Play className="w-4 h-4 mr-2" />
-              Start Test
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Play className="w-4 h-4 mr-2" />
+              )}
+              {isLoading ? 'Starting...' : 'Start Test'}
             </Button>
           )}
           
@@ -173,9 +180,14 @@ export function TestingTaskCard({ task, onStart, onComplete, onView }: TestingTa
               size="sm" 
               onClick={() => onComplete(task.id)}
               className="flex-1"
+              disabled={isLoading}
             >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Complete Test
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <CheckCircle className="w-4 h-4 mr-2" />
+              )}
+              {isLoading ? 'Completing...' : 'Complete Test'}
             </Button>
           )}
           

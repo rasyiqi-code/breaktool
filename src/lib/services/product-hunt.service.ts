@@ -274,6 +274,18 @@ export class ProductHuntService {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Product Hunt API error response:', errorText);
+        
+        // Handle specific error cases
+        if (response.status === 400) {
+          throw new Error(`Product Hunt API Bad Request (400): ${errorText}. Please check your API credentials and request parameters.`);
+        } else if (response.status === 401) {
+          throw new Error(`Product Hunt API Unauthorized (401): ${errorText}. Please check your Developer Token.`);
+        } else if (response.status === 429) {
+          throw new Error(`Product Hunt API Rate Limited (429): ${errorText}. Please try again later.`);
+        } else if (response.status >= 500) {
+          throw new Error(`Product Hunt API Server Error (${response.status}): ${errorText}. Please try again later.`);
+        }
+        
         throw new Error(`Product Hunt API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
@@ -805,7 +817,9 @@ export class ProductHuntService {
     updateExisting: boolean = false
   ): Promise<SyncResult> {
     try {
+      console.log(`Starting sync of ${limit} trending products...`);
       const trendingProducts = await this.getTrendingProducts(limit);
+      console.log(`Fetched ${trendingProducts.length} products from Product Hunt`);
       
       const result: SyncResult = {
         created: 0,
@@ -818,46 +832,59 @@ export class ProductHuntService {
         }
       };
 
-      for (const product of trendingProducts) {
-        try {
-          if (forceSync) {
-            // Force sync: create new submission even if tool exists
-            const created = await this.createToolFromProductHuntForce(product, adminUserId);
-            if (created) {
-              result.created++;
-              result.details.created.push(product.name);
+      // Process products in smaller batches to avoid timeouts
+      const batchSize = 5;
+      for (let i = 0; i < trendingProducts.length; i += batchSize) {
+        const batch = trendingProducts.slice(i, i + batchSize);
+        console.log(`Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(trendingProducts.length / batchSize)}`);
+        
+        for (const product of batch) {
+          try {
+            if (forceSync) {
+              // Force sync: create new submission even if tool exists
+              const created = await this.createToolFromProductHuntForce(product, adminUserId);
+              if (created) {
+                result.created++;
+                result.details.created.push(product.name);
+              } else {
+                result.skipped++;
+                result.details.skipped.push(product.name);
+              }
+            } else if (updateExisting) {
+              // Update existing: update existing tools with new data
+              const updated = await this.updateExistingToolFromProductHunt(product, adminUserId);
+              if (updated) {
+                result.created++;
+                result.details.created.push(`${product.name} (updated)`);
+              } else {
+                result.skipped++;
+                result.details.skipped.push(product.name);
+              }
             } else {
-              result.skipped++;
-              result.details.skipped.push(product.name);
+              // Normal sync: skip if exists
+              const created = await this.createToolFromProductHunt(product, adminUserId);
+              if (created) {
+                result.created++;
+                result.details.created.push(product.name);
+              } else {
+                result.skipped++;
+                result.details.skipped.push(product.name);
+              }
             }
-          } else if (updateExisting) {
-            // Update existing: update existing tools with new data
-            const updated = await this.updateExistingToolFromProductHunt(product, adminUserId);
-            if (updated) {
-              result.created++;
-              result.details.created.push(`${product.name} (updated)`);
-            } else {
-              result.skipped++;
-              result.details.skipped.push(product.name);
-            }
-          } else {
-            // Normal sync: skip if exists
-            const created = await this.createToolFromProductHunt(product, adminUserId);
-            if (created) {
-              result.created++;
-              result.details.created.push(product.name);
-            } else {
-              result.skipped++;
-              result.details.skipped.push(product.name);
-            }
+          } catch (error) {
+            result.errors++;
+            result.details.errors.push(`${product.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            console.error(`Error syncing product ${product.name}:`, error);
           }
-        } catch (error) {
-          result.errors++;
-          result.details.errors.push(`${product.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          console.error(`Error syncing product ${product.name}:`, error);
+        }
+        
+        // Add a small delay between batches to prevent overwhelming the database
+        if (i + batchSize < trendingProducts.length) {
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
 
+      console.log(`Sync completed: ${result.created} created, ${result.skipped} skipped, ${result.errors} errors`);
       return result;
     } catch (error) {
       console.error('Error syncing Product Hunt data:', error);

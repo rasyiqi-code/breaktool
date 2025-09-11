@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { TestingReportForm } from '@/components/testing/testing-report-form';
-import { useRoleCheck } from '@/hooks/use-role-check';
+import { useMultiRole } from '@/hooks/use-multi-role';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText } from 'lucide-react';
 
@@ -48,9 +48,8 @@ export default function SubmitReportPage() {
   const params = useParams();
   const taskId = params.taskId as string;
   
-  const { hasAccess, isLoading: roleLoading } = useRoleCheck({
-    requiredRoles: ['verified_tester', 'admin', 'super_admin']
-  });
+  const { user, activeRole, isLoading: roleLoading, hasAnyRole } = useMultiRole();
+  const hasAccess = hasAnyRole(['verified_tester', 'admin', 'super_admin']);
 
   const [task, setTask] = useState<TestingTask | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

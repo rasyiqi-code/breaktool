@@ -282,28 +282,28 @@ export function ReviewCard({ review, onVote, showVoteButtons = true, toolName = 
           {/* Setup & Usage */}
           {(review.setup_time || review.usage_recommendations) && (
             <p>
-              {review.setup_time && `Untuk setup awal, tool ini membutuhkan waktu sekitar ${review.setup_time}. `}
-              {review.usage_recommendations && `Saya sangat merekomendasikan {toolName} untuk ${review.usage_recommendations}.`}
+              {review.setup_time && `For initial setup, this tool requires approximately ${review.setup_time}. `}
+              {review.usage_recommendations && `I highly recommend ${toolName} for ${review.usage_recommendations}.`}
             </p>
           )}
 
           {/* Context Information */}
           {(review.company_size || review.industry || review.usage_duration) && (
             <p className="text-sm text-muted-foreground italic">
-              <strong>Konteks penggunaan:</strong> 
-              {review.company_size && ` Saya menggunakan tool ini di perusahaan dengan ukuran ${review.company_size}.`}
-              {review.industry && ` Bidang industri yang saya jalani adalah ${review.industry}.`}
-              {review.usage_duration && ` Saya telah menggunakan tool ini selama ${review.usage_duration}.`}
+              <strong>Usage Context:</strong> 
+              {review.company_size && ` I use this tool in a company with ${review.company_size} size.`}
+              {review.industry && ` The industry I work in is ${review.industry}.`}
+              {review.usage_duration && ` I have been using this tool for ${review.usage_duration}.`}
             </p>
           )}
 
           {/* Final Recommendation */}
           {review.recommendation && (
             <p className="font-medium">
-              <strong>Rekomendasi akhir:</strong> Berdasarkan pengalaman saya, {toolName} adalah tool yang {
-                review.recommendation === 'keep' ? 'sangat direkomendasikan untuk terus digunakan' :
-                review.recommendation === 'try' ? 'layak untuk dicoba dan dievaluasi lebih lanjut' :
-                'tidak direkomendasikan untuk saat ini'
+              <strong>Final Recommendation:</strong> Based on my experience, {toolName} is a tool that is {
+                review.recommendation === 'keep' ? 'highly recommended to continue using' :
+                review.recommendation === 'try' ? 'worth trying and evaluating further' :
+                'not recommended at this time'
               }.
             </p>
           )}
