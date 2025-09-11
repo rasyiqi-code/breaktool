@@ -74,36 +74,37 @@ export default async function Home() {
               <span className="text-muted-foreground">The most trusted SaaS review platform.</span>
             </h1>
             
-            {/* Product Hunt Badge */}
-            <div className="flex justify-center mb-6">
-              <a 
-                href="https://www.producthunt.com/posts/breaktool" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="group inline-flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-4 py-2 shadow-sm hover:shadow-md hover:border-orange-300 transition-all duration-200"
-              >
-                <span className="text-sm text-gray-600">Powered by</span>
-                <Image
-                  src="/product-hunt-logo.png"
-                  alt="Product Hunt Logo"
-                  width={120}
-                  height={30}
-                  className="h-6 w-auto opacity-80 group-hover:opacity-100 transition-opacity"
-                />
-              </a>
-            </div>
-            
             <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
               Get reviews from <strong className="text-foreground">verified experts</strong> and <strong className="text-foreground">professional testers </strong> 
                who have actually used these tools in real scenarios. Stop guessing, start deciding.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
               <Button size="lg" className="w-full sm:w-auto">
                 Claim Yours
               </Button>
               <Button variant="outline" size="lg" className="w-full sm:w-auto">
                 Become a Verified Tester
               </Button>
+            </div>
+            
+            {/* Product Hunt Integration Notice */}
+            <div className="flex justify-center mb-4">
+              <div className="inline-flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-full px-4 py-2 text-sm text-orange-800">
+                <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
+                <span className="font-medium">Powered by Product Hunt API</span>
+              </div>
+            </div>
+            
+            {/* Product Hunt Badge */}
+            <div className="flex justify-center">
+              <a href="https://www.producthunt.com/products/breaktool?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-breaktool" target="_blank">
+                <Image 
+                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1014201&theme=dark&t=1757581290980" 
+                  alt="Breaktool - Trusted saas reviews by verified experts | Product Hunt" 
+                  width={250}
+                  height={54}
+                />
+              </a>
             </div>
           </div>
         </div>

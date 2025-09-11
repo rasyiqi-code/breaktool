@@ -48,7 +48,7 @@ export default function SubmitReportPage() {
   const params = useParams();
   const taskId = params.taskId as string;
   
-  const { user, activeRole, isLoading: roleLoading, hasAnyRole } = useMultiRole();
+  const { isLoading: roleLoading, hasAnyRole } = useMultiRole();
   const hasAccess = hasAnyRole(['verified_tester', 'admin', 'super_admin']);
 
   const [task, setTask] = useState<TestingTask | null>(null);

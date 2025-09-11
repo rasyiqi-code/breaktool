@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
@@ -22,7 +21,6 @@ import {
   ChevronDown,
   Grid3X3,
   List,
-  ExternalLink,
   Trash2,
   ChevronRight,
   ChevronUp
